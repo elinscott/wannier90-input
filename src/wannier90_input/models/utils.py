@@ -1,9 +1,9 @@
 """Custom __str__ method for the Wannier90Input class."""
 
-from __future__ import annotations
+from pydantic import BaseModel
 
 
-def custom_str(model: Wannier90Input) -> str:
+def custom_str(model: BaseModel) -> str:
     """Return the model formatted as Wannier90 expects it"""
     # Iterate over the fields
     lines: list[str] = []
@@ -43,7 +43,7 @@ def _sanitize(string: str, to_remove: str):
     return string
 
 
-def _block_str(name: str, model: Wannier90Input, units: str | None = None, to_remove=',[]') -> list[str]:
+def _block_str(name: str, model: BaseModel, units: str | None = None, to_remove=',[]') -> list[str]:
     content = getattr(model, name)
     if content == []:
         return []
@@ -52,11 +52,11 @@ def _block_str(name: str, model: Wannier90Input, units: str | None = None, to_re
     return ["", f"begin {name}"] + unit_list + [indent + _sanitize(str(x), to_remove) for x in content] + [f"end {name}", ""]
 
 
-def _keyword_str(name: str, model: Wannier90Input) -> list[str]:
+def _keyword_str(name: str, model: BaseModel) -> list[str]:
     return [f"{name} = {getattr(model, name)}"] if getattr(model, name) is not None else []
 
 
-def _list_keyword_str(name: str, model: Wannier90Input, join_with: str = ' ') -> list[str]:
+def _list_keyword_str(name: str, model: BaseModel, join_with: str = ' ') -> list[str]:
     value = getattr(model, name)
     assert isinstance(value, (list, tuple))
     return [f"{name} = " + join_with.join([str(x) for x in value])] if value else []

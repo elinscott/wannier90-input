@@ -7,6 +7,9 @@ import base64
 import os
 
 import github3
+from github3.repos import Repository
+from github3.repos.commit import RepoCommit
+from github3.repos.tag import RepoTag
 
 from wannier90_input.xml_files import directory as xml_directory
 
@@ -21,24 +24,24 @@ def create_github_session(token: str | None = None):
 
 def get_latest_commit(owner: str, repo: str, token: str | None = None, branch: str | None = None):
     gh = create_github_session(token)
-    repository = gh.repository(owner, repo)
+    repository: Repository = gh.repository(owner, repo)
     branch = branch or repository.default_branch
     return repository.branch(branch).commit
 
 
-def list_repo_tags(owner: str, repo: str, token: str | None = None):
+def list_repo_tags(owner: str, repo: str, token: str | None = None) -> list[RepoTag]:
     """Lists all tags of a given GitHub repository."""
     gh = create_github_session(token)
-    repository = gh.repository(owner, repo)
+    repository: Repository = gh.repository(owner, repo)
 
     if repository is None:
         print(f"Repository {owner}/{repo} not found or access denied.")
-        return
+        return []
 
     return repository.tags()
 
 
-def download_file(owner: str, repo: str, file_path: str, token: str | None = None, tag: str | None = None, commit: str | None = None):
+def download_file(owner: str, repo: str, file_path: str, token: str | None = None, tag: RepoTag | None = None, commit: RepoCommit | None = None):
     """Downloads a specific file from a given GitHub repository at a specified tag using github3."""
     gh = create_github_session(token)
     repository = gh.repository(owner, repo)
@@ -90,6 +93,8 @@ def fetch_xml():
     download_file(owner, repo, file_path, token, commit=latest_commit)
 
     # Link the latest commit to the folder "latest"
-    if os.path.exists(xml_directory / "latest"):
-        os.remove(xml_directory / "latest")
-    os.symlink(latest_commit.sha[:7], xml_directory / "latest")
+    # src = xml_directory / latest_commit.sha[:7] / "parameters.xml"
+    # dst = xml_directory / "latest" / "parameters.xml"
+    # if dst.is_file():
+    #     dst.unlink()
+    # dst.symlink_to(src)

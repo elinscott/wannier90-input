@@ -40,7 +40,9 @@ def generate_pydantic_model(xml_path: str, version: str = "latest") -> str:
         # For the moment, only implementing Wannier90 and not post-processing
         if parameter.attrib['tool'] != 'w90':
             continue
-        name = parameter.find("name").text
+        name_element = parameter.find("name")
+        assert name_element is not None
+        name = name_element.text
         if name in fields_to_exclide:
             continue
 
@@ -49,8 +51,15 @@ def generate_pydantic_model(xml_path: str, version: str = "latest") -> str:
         if name in fields_to_patch:
             field_def += fields_to_patch.pop(name)
         else:
-            xml_type = parameter.find("type").text
-            description = parameter.find("description").text
+            type_element = parameter.find("type")
+            assert type_element is not None
+            xml_type = type_element.text
+            assert isinstance(xml_type, str)
+
+            description_element = parameter.find("description")
+            assert description_element is not None
+            description = description_element.text
+
             choices = parameter.find("choices")
             default = parameter.find("default")
 
