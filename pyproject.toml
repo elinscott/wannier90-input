@@ -140,7 +140,9 @@ skip = [
 plugins = [
     "pydantic.mypy",
 ]
-
+exclude = [
+    "src/wannier90_input/xml_files/latest/parameters.xml",
+]
 # Doc8, see https://doc8.readthedocs.io/en/stable/readme.html#ini-file-usage
 [tool.doc8]
 max-line-length = 120
