@@ -31,7 +31,7 @@ def update():
     from wannier90_input.generate import generate_models
     fetch_xml()
     generate_models()
-    
+
 # If you want to have a multi-command CLI, see https://click.palletsprojects.com/en/latest/commands/
 
 

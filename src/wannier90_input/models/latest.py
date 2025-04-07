@@ -1,20 +1,32 @@
-from pydantic import BaseModel, ConfigDict, Field, model_validator
 from typing import Annotated, Literal
+
 from numpydantic import NDArray, Shape
-from wannier90_input.validators import before_validators, after_validators
-from wannier90_input.models.parameters import (AtomsFrac, AtomsCart, Projection, DisentanglementSphere,
-    CentreConstraint, SpecialPoint, Projection, FractionalCoordinate, FractionalCoordinateFactory)
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+
+from wannier90_input.models.parameters import (
+    AtomCart,
+    AtomFrac,
+    CentreConstraint,
+    Coordinate,
+    DisentanglementSphere,
+    FractionalCoordinate,
+    Projection,
+    SpecialPoint,
+)
+from wannier90_input.models.utils import custom_str
+from wannier90_input.validators import after_validators, before_validators
+
 
 class Wannier90Input(BaseModel):
     model_config = ConfigDict(validate_assignment=True)
 
     num_wann: int = Field(..., description="Number of WF")
     num_bands: int = Field(..., description="Number of bands passed to the code")
-    unit_cell_cart: Annotated[NDArray[Shape["3, 3"], float], Field(description="Unit cell in cartesian coordinates")]
-    atoms_cart: AtomsCart | None = Field(None, description="Positions of atoms in Cartesian coordinates")
-    atoms_frac: AtomsFrac | None = Field(None, description="Positions of atoms in fractional coordinates")
+    unit_cell_cart: list[Coordinate] = Field(description="Unit cell in cartesian coordinates", min_length=3, max_length=3)
+    atoms_cart: list[AtomCart] | None = Field(None, description="Positions of atoms in Cartesian coordinates")
+    atoms_frac: list[AtomFrac] | None = Field(None, description="Positions of atoms in fractional coordinates")
     mp_grid: tuple[int, int, int] = Field(..., description="Dimensions of the Monkhorst-Pack grid of k-points")
-    kpoints: Annotated[NDArray[Shape["*, 3"], float] | None, Field(None, description="k-points in relative crystallographic units")]
+    kpoints: list[FractionalCoordinate] = Field(default_factory=list, description="k-points in relative crystallographic units")
     gamma_only: bool = Field(False, description="Wavefunctions from underlying ab initio calculation are manifestly real")
     spinors: bool = Field(False, description="WF are spinors")
     shell_list: list[int] = Field(default_factory=list, description="Which shells to use in finite difference formula")
@@ -106,7 +118,7 @@ class Wannier90Input(BaseModel):
     hr_cutoff: float = Field(0.0, description="Cut-off for the absolute value of the Hamiltonian")
     dist_cutoff: float = Field(1000.0, description="Cut-off for the distance between WF")
     dist_cutoff_mode: Literal["three_dim", "two_dim", "one_dim"] = Field("three_dim", description="Dimension in which the distance between WF is calculated")
-    translation_centre_frac: FractionalCoordinate = Field(default_factory=FractionalCoordinateFactory, description="Centre of the translation vector")
+    translation_centre_frac: FractionalCoordinate | None = Field(None, description="Centre of the translation vector")
     use_ws_distance: bool = Field(True, description="Improve interpolation using minimum distance between WFs, see Chap. [Some notes on the interpolation](notes_interpolations.md)")
     ws_distance_tol: float = Field(1e-05, description="Absolute tolerance for the distance to equivalent positions.")
     ws_search_size: int = Field(2, description="Maximum extension in each direction of the super-cell of the Born-von Karmann cell to search for points inside the Wigner-Seitz cell")
@@ -145,3 +157,6 @@ class Wannier90Input(BaseModel):
         for validator in after_validators:
             values = validator(cls, values)
         return values
+
+    def __str__(self):
+        return custom_str(self)

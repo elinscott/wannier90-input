@@ -1,12 +1,15 @@
 """Fetch the XML files from the Wannier90 Github repo.
 
-the xml files of all tags from https://github.com/wannier-developers/wannier90/blob/<tag>/docs/docs/parameters/parameters.xml and adds them to this folder."""
+the xml files of all tags from https://github.com/wannier-developers/wannier90/blob/<tag>/docs/docs/parameters/parameters.xml and adds them to this folder.
+"""
 
-import os
-import github3
 import base64
+import os
+
+import github3
 
 from wannier90_input.xml_files import directory as xml_directory
+
 
 def create_github_session(token: str | None = None):
     if token is None:
@@ -26,11 +29,11 @@ def list_repo_tags(owner: str, repo: str, token: str | None = None):
     """Lists all tags of a given GitHub repository."""
     gh = create_github_session(token)
     repository = gh.repository(owner, repo)
-    
+
     if repository is None:
         print(f"Repository {owner}/{repo} not found or access denied.")
         return
-    
+
     return repository.tags()
 
 def download_file(owner: str, repo: str, file_path: str, token: str | None = None, tag: str | None = None, commit: str | None = None):
@@ -45,11 +48,11 @@ def download_file(owner: str, repo: str, file_path: str, token: str | None = Non
         name = commit.sha[:7]
     else:
         raise ValueError("Either tag or commit must be provided.")
-    
+
     if repository is None:
         print(f"Repository {owner}/{repo} not found or access denied.")
         return
-    
+
     # Fetch the file content
     try:
         file_content = repository.file_contents(file_path, ref=commit.sha)
@@ -74,11 +77,11 @@ def fetch_xml():
 
     # Load the environment variable GITHUB_TOKEN (if set)
     token = os.getenv("GITHUB_TOKEN")
-    
+
     # Download the file for all tags
     for tag in list_repo_tags(owner, repo, token=token):
         download_file(owner, repo, file_path, token=token, tag=tag)
-    
+
     # Download the file for the latest commit
     latest_commit = get_latest_commit(owner, repo, token)
     download_file(owner, repo, file_path, token, commit=latest_commit)

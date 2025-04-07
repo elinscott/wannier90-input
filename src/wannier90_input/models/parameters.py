@@ -1,30 +1,31 @@
-from pydantic import BaseModel, Field
-from typing import Annotated, Type
 import textwrap
-from pydantic import ValidationError, model_validator
+from typing import Annotated
+
+from pydantic import BaseModel, Field, model_validator
 
 Fraction= Annotated[float, Field(ge=0.0, le=1.0)]
 FractionalCoordinate = Annotated[list[Fraction], Field(min_length=3, max_length=3)]
-
-
-def FractionalCoordinateFactory() -> FractionalCoordinate:
-    return FractionalCoordinate([0.0, 0.0, 0.0])
-
-
 Coordinate = Annotated[list[float], Field(min_length=3, max_length=3)]
 
 
-class AtomsFrac(BaseModel):
-    """Wannier90 atoms_frac input parameter."""
+class AtomFrac(BaseModel):
+    """One entry in the Wannier90 atoms_frac input parameter."""
 
-    symbols: list[str] = Field(..., description="Atomic symbols")
-    positions: list[FractionalCoordinate] = Field(..., description="Fractional coordinates of atoms")
+    symbol: str = Field(..., description="Atomic symbol")
+    position: FractionalCoordinate = Field(..., description="Fractional coordinates of the atom")
 
-class AtomsCart(BaseModel):
-    """Wannier90 atoms_cart input parameter."""
+    def __str__(self) -> str:
+        return f"{self.symbol} {' '.join(map(str, self.position))}"
 
-    symbols: list[str] = Field(..., description="Atomic symbols")
-    positions: list[Coordinate] = Field(..., description="Cartesian coordinates of atoms")
+class AtomCart(BaseModel):
+    """One entry in the Wannier90 atoms_cart input parameter."""
+
+    symbol: str = Field(..., description="Atomic symbol")
+    position: Coordinate = Field(..., description="Cartesian coordinates of the atom")
+
+    def __str__(self) -> str:
+        return f"{self.symbol} {' '.join(map(str, self.position))}"
+
 
 class DisentanglementSphere(BaseModel):
     """Wannier90 dis_spheres input parameter."""
@@ -32,17 +33,26 @@ class DisentanglementSphere(BaseModel):
     center: FractionalCoordinate = Field(..., description="Center of the sphere (in crystallographic coordinates)")
     radius: float = Field(..., description="Radius of the sphere (inverse Angstrom)")
 
+    def __str__(self):
+        return f"{','.join(map(str, self.center))} {self.radius}"
+
 class CentreConstraint(BaseModel):
     """Wannier90 slwf_centres input parameter."""
 
     number: int = Field(..., description="Wannier function index")
     center: FractionalCoordinate = Field(..., description="Centre on which to constrain the Wannier function (fractional coordinates)")
 
+    def __str__(self):
+        return f"{self.number} {','.join(map(str, self.center))}"
+
 class SpecialPoint(BaseModel):
     """Wannier90 kpoint_path input parameter."""
 
     name: str = Field(..., description="Name of the special point")
     coordinates: FractionalCoordinate = Field(..., description="Coordinates of the special point (fractional coordinates)")
+
+    def __str__(self):
+        return f"{self.name} {','.join(map(str, self.coordinates))}"
 
 class Projection(BaseModel):
     fractional_site: FractionalCoordinate | None = Field(None, description="Site of the projection (fractional coordinates)")
@@ -74,10 +84,10 @@ class Projection(BaseModel):
         else:
             site_str = self.site
         return f"{site_str}:{self.ang_mtm}:[{','.join([str(x) for x in self.zaxis])}]:[{','.join([str(x) for x in self.xaxis])}]:{self.radial}:{self.zona}"
-    
-parameter_models: list[Type[BaseModel]] = [
-    AtomsFrac,
-    AtomsCart,
+
+parameter_models: list[type[BaseModel]] = [
+    AtomFrac,
+    AtomCart,
     Projection,
     DisentanglementSphere,
     CentreConstraint,
@@ -86,8 +96,8 @@ parameter_models: list[Type[BaseModel]] = [
 ]
 
 other_imports = [
+    "Coordinate",
     "FractionalCoordinate",
-    "FractionalCoordinateFactory",
 ]
 
 

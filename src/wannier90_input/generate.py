@@ -3,18 +3,19 @@
 The python code is generated statically so that the models can be inspected statically.
 """
 
-from pathlib import Path
-from xml.etree import ElementTree as ET
 import warnings
+from xml.etree import ElementTree as ET
 
-from pydantic import BaseModel, Field
-from typing import List, Optional, Union
-
-from wannier90_input.xml_files import files as xml_files
 from wannier90_input.models import directory as model_directory
-from wannier90_input.patches import (fields as fields_to_patch, types as types_to_patch, defaults as defaults_to_patch,
-    exclude as fields_to_exclide, allow_none as types_to_allow_none)
 from wannier90_input.models.parameters import import_parameter_models
+from wannier90_input.patches import allow_none as types_to_allow_none
+from wannier90_input.patches import defaults as defaults_to_patch
+from wannier90_input.patches import exclude as fields_to_exclide
+from wannier90_input.patches import fields as fields_to_patch
+from wannier90_input.patches import types as types_to_patch
+from wannier90_input.xml_files import files as xml_files
+
+
 def parse_type(xml_type: str):
     """Map XML type notation to Python types."""
     type_mapping = {
@@ -30,9 +31,9 @@ def generate_pydantic_model(xml_path: str, version: str = "latest") -> str:
     """Parse the XML file and generate a Pydantic model."""
     tree = ET.parse(xml_path)
     root = tree.getroot()
-    
+
     class_definitions = {}
-    
+
     fields = set([])
     for parameter in root.findall("parameter"):
         # For the moment, only implementing Wannier90 and not post-processing
@@ -51,7 +52,7 @@ def generate_pydantic_model(xml_path: str, version: str = "latest") -> str:
             description = parameter.find("description").text
             choices = parameter.find("choices")
             default = parameter.find("default")
-        
+
             if name in types_to_patch:
                 type_str = types_to_patch[name]
             else:
@@ -77,24 +78,25 @@ def generate_pydantic_model(xml_path: str, version: str = "latest") -> str:
             else:
                 default_str = '...'
             field_def += f"{type_str} = Field({default_str}, description=\"{description}\")"
-        
+
         if name in class_definitions:
             warnings.warn(f"Duplicate field name '{name}' in XML file. Ignoring new definition.")
         else:
             class_definitions[name] = field_def
 
         fields.add(name)
-    
+
     class_definitions.update(**fields_to_patch)
 
     if version == "latest":
         version = ""
 
-    
+
     return f"""from pydantic import BaseModel, ConfigDict, Field, model_validator
 from typing import Annotated, Literal
 from numpydantic import NDArray, Shape
 from wannier90_input.validators import before_validators, after_validators
+from wannier90_input.models.utils import custom_str
 {import_parameter_models}
 
 class Wannier90Input{version}(BaseModel):
@@ -114,6 +116,9 @@ class Wannier90Input{version}(BaseModel):
         for validator in after_validators:
             values = validator(cls, values)
         return values
+
+    def __str__(self):
+        return custom_str(self)
 """
 
 def generate_models():

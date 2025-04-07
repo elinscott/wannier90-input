@@ -1,9 +1,13 @@
+from typing import Literal
+
 from pydantic import BaseModel, ConfigDict, Field, model_validator
-from typing import Annotated, Literal
-from numpydantic import NDArray, Shape
-from wannier90_input.validators import before_validators, after_validators
-from wannier90_input.models.parameters import (AtomsFrac, AtomsCart, Projection, DisentanglementSphere,
-    CentreConstraint, SpecialPoint, Projection, FractionalCoordinate, FractionalCoordinateFactory)
+
+from wannier90_input.models.parameters import (
+    Projection,
+)
+from wannier90_input.models.utils import custom_str
+from wannier90_input.validators import after_validators, before_validators
+
 
 class Wannier90Input(BaseModel):
     model_config = ConfigDict(validate_assignment=True)
@@ -145,3 +149,6 @@ class Wannier90Input(BaseModel):
         for validator in after_validators:
             values = validator(cls, values)
         return values
+
+    def __str__(self):
+        return custom_str(self)
