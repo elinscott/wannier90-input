@@ -31,15 +31,17 @@ def custom_str(model: Wannier90Input) -> str:
         else:
             lines += _keyword_str(name, model)
 
-    return "\n".join(lines).replace("\n\n\n","\n\n").strip('\n')
+    return "\n".join(lines).replace("\n\n\n", "\n\n").strip('\n')
 
 
 indent = ' '
+
 
 def _sanitize(string: str, to_remove: str):
     for char in to_remove:
         string = string.replace(char, "")
     return string
+
 
 def _block_str(name: str, model: Wannier90Input, units: str | None = None, to_remove=',[]') -> list[str]:
     content = getattr(model, name)
@@ -49,8 +51,10 @@ def _block_str(name: str, model: Wannier90Input, units: str | None = None, to_re
 
     return ["", f"begin {name}"] + unit_list + [indent + _sanitize(str(x), to_remove) for x in content] + [f"end {name}", ""]
 
+
 def _keyword_str(name: str, model: Wannier90Input) -> list[str]:
     return [f"{name} = {getattr(model, name)}"] if getattr(model, name) is not None else []
+
 
 def _list_keyword_str(name: str, model: Wannier90Input, join_with: str = ' ') -> list[str]:
     value = getattr(model, name)

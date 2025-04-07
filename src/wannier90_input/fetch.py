@@ -19,11 +19,12 @@ def create_github_session(token: str | None = None):
     return gh
 
 
-def get_latest_commit(owner: str, repo: str, token: str | None = None, branch: str | None=None):
+def get_latest_commit(owner: str, repo: str, token: str | None = None, branch: str | None = None):
     gh = create_github_session(token)
     repository = gh.repository(owner, repo)
     branch = branch or repository.default_branch
     return repository.branch(branch).commit
+
 
 def list_repo_tags(owner: str, repo: str, token: str | None = None):
     """Lists all tags of a given GitHub repository."""
@@ -35,6 +36,7 @@ def list_repo_tags(owner: str, repo: str, token: str | None = None):
         return
 
     return repository.tags()
+
 
 def download_file(owner: str, repo: str, file_path: str, token: str | None = None, tag: str | None = None, commit: str | None = None):
     """Downloads a specific file from a given GitHub repository at a specified tag using github3."""
@@ -69,6 +71,7 @@ def download_file(owner: str, repo: str, file_path: str, token: str | None = Non
         with open(xml_directory / name / "parameters.xml", 'wb') as f:
             f.write(decoded_content)
         print(f"File {file_path} downloaded successfully for commit {name}.")
+
 
 def fetch_xml():
     owner = "wannier-developers"

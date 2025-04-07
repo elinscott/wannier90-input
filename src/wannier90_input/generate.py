@@ -27,6 +27,7 @@ def parse_type(xml_type: str):
     }
     return type_mapping.get(xml_type, str)
 
+
 def generate_pydantic_model(xml_path: str, version: str = "latest") -> str:
     """Parse the XML file and generate a Pydantic model."""
     tree = ET.parse(xml_path)
@@ -58,7 +59,8 @@ def generate_pydantic_model(xml_path: str, version: str = "latest") -> str:
             else:
                 python_type = parse_type(xml_type)
                 if choices:
-                    type_str = "Literal[" + ", ".join([f"\"{c.text}\"" if python_type == str else python_type(c.text) for c in choices])
+                    type_str = "Literal[" + ", ".join(
+                        [f"\"{c.text}\"" if python_type == str else python_type(c.text) for c in choices])
                     if name in types_to_allow_none:
                         type_str += ", None"
                     type_str += "]"
@@ -91,7 +93,6 @@ def generate_pydantic_model(xml_path: str, version: str = "latest") -> str:
     if version == "latest":
         version = ""
 
-
     return f"""from pydantic import BaseModel, ConfigDict, Field, model_validator
 from typing import Annotated, Literal
 from numpydantic import NDArray, Shape
@@ -120,6 +121,7 @@ class Wannier90Input{version}(BaseModel):
     def __str__(self):
         return custom_str(self)
 """
+
 
 def generate_models():
     for name, xml_file in xml_files.items():

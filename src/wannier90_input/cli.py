@@ -25,6 +25,7 @@ def main() -> None:
     """CLI for wannier90_input."""
     pass
 
+
 @main.command()
 def update():
     from wannier90_input.fetch import fetch_xml
