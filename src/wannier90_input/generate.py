@@ -105,31 +105,11 @@ def generate_pydantic_model(xml_path: str, version: str = "latest") -> str:
     return f"""from pydantic import BaseModel, ConfigDict, Field, model_validator
 from typing import Annotated, Literal
 from numpydantic import NDArray, Shape
-from wannier90_input.validators import before_validators, after_validators
-from wannier90_input.models.utils import custom_str
+from wannier90_input.models.template import Wannier90InputTemplate
 {import_parameter_models}
 
-class Wannier90Input{version}(BaseModel):
-    model_config = ConfigDict(validate_assignment=True)
-
-""" + "\n".join([f"    {k}: {v}" for k, v in class_definitions.items()]) + "\n" + """
-    @model_validator(mode='before')
-    @classmethod
-    def validate_before(cls, values):
-        for validator in before_validators:
-            values = validator(values)
-        return values
-
-    @model_validator(mode='after')
-    @classmethod
-    def validate_after(cls, values):
-        for validator in after_validators:
-            values = validator(cls, values)
-        return values
-
-    def __str__(self):
-        return custom_str(self)
-"""
+class Wannier90Input{version}(Wannier90InputTemplate):
+""" + "\n".join([f"    {k}: {v}" for k, v in class_definitions.items()]) + "\n"
 
 
 def generate_models():

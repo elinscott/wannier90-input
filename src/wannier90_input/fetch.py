@@ -93,8 +93,8 @@ def fetch_xml():
     download_file(owner, repo, file_path, token, commit=latest_commit)
 
     # Link the latest commit to the folder "latest"
-    # src = xml_directory / latest_commit.sha[:7] / "parameters.xml"
-    # dst = xml_directory / "latest" / "parameters.xml"
-    # if dst.is_file():
-    #     dst.unlink()
-    # dst.symlink_to(src)
+    src = xml_directory / latest_commit.sha[:7] / "parameters.xml"
+    dst = xml_directory / "latest" / "parameters.xml"
+    if dst.is_file():
+        dst.unlink()
+    dst.symlink_to(src)

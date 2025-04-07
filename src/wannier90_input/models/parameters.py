@@ -59,6 +59,14 @@ class SpecialPoint(BaseModel):
 
     def __str__(self):
         return f"{self.name} {','.join(map(str, self.coordinates))}"
+    
+class NearestNeighborKpoint(BaseModel):
+    kpoint_number: int
+    neighbor_kpoint_number: int
+    reciprocal_lattice_vector: Annotated[list[int], Field(min_length=3, max_length=3)]
+
+    def __str__(self):
+        return f"{self.kpoint_number} {self.neighbor_kpoint_number} {' '.join(map(str, self.reciprocal_lattice_vector))}"
 
 
 class Projection(BaseModel):
@@ -106,7 +114,8 @@ parameter_models: list[type[BaseModel]] = [
     DisentanglementSphere,
     CentreConstraint,
     SpecialPoint,
-    Projection
+    Projection,
+    NearestNeighborKpoint
 ]
 
 other_imports = [

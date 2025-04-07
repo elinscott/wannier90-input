@@ -11,8 +11,8 @@ fields = {
     'fractional coordinates")',
     "shell_list": 'list[int] = Field(default_factory=list, description="Which shells to use in '
     'finite difference formula")',
-    "nnkpts": 'Annotated[NDArray[Shape["*, 5"], int], Field(default_factory=list, '
-    'description="Explicit list of nearest-neighbour k-points")]',
+    "nnkpts": 'list[NearestNeighborKpoint] = Field(default_factory=list, '
+    'description="Explicit list of nearest-neighbour k-points")',
     "projections": 'list[Projection] = Field(default_factory=list, description="Projections for '
     'the Wannier functions")',
     "exclude_bands": 'list[int] = Field(default_factory=list, description="List of bands to '
@@ -40,7 +40,8 @@ types = {
 }
 
 allow_none = ["dis_win_min", "dis_win_max", "dis_froz_min", "dis_froz_max",
-              "fermi_energy_min", "fermi_energy_max", "one_dim_axis", "kpoints"]
+              "fermi_energy_min", "fermi_energy_max", "one_dim_axis", "kpoints",
+              "slwf_num"]
 
 exclude = ["devel_flag"]
 

@@ -14,6 +14,7 @@ later, but that will cause problems--the code will get executed twice:
 """
 
 import click
+import json
 
 __all__ = [
     "cli",
@@ -33,8 +34,11 @@ def update():
     fetch_xml()
     generate_models()
 
-# If you want to have a multi-command CLI, see https://click.palletsprojects.com/en/latest/commands/
 
+@main.command
+def schema():
+    from wannier90_input.models.latest import Wannier90Input
+    print(json.dumps(Wannier90Input.model_json_schema(), indent=2))
 
 if __name__ == "__main__":
     main()

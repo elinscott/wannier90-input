@@ -1,14 +1,11 @@
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from typing import Annotated, Literal
 from numpydantic import NDArray, Shape
-from wannier90_input.validators import before_validators, after_validators
-from wannier90_input.models.utils import custom_str
+from wannier90_input.models.template import Wannier90InputTemplate
 from wannier90_input.models.parameters import (AtomFrac, AtomCart, Projection, DisentanglementSphere, CentreConstraint,
-    SpecialPoint, Projection, Coordinate, FractionalCoordinate)
+    SpecialPoint, Projection, NearestNeighborKpoint, Coordinate, FractionalCoordinate)
 
-class Wannier90Input(BaseModel):
-    model_config = ConfigDict(validate_assignment=True)
-
+class Wannier90Input(Wannier90InputTemplate):
     num_wann: int = Field(..., description="Number of WF")
     num_bands: int = Field(..., description="Number of bands passed to the code")
     unit_cell_cart: list[Coordinate] = Field(description="Unit cell in cartesian coordinates", min_length=3, max_length=3)
@@ -21,7 +18,7 @@ class Wannier90Input(BaseModel):
     shell_list: list[int] = Field(default_factory=list, description="Which shells to use in finite difference formula")
     search_shells: int = Field(36, description="The number of shells to search when determining finite difference formula")
     skip_B1_tests: bool = Field(False, description="Check the condition B1 of Ref [@marzari-prb97]")
-    nnkpts: Annotated[NDArray[Shape["*, 5"], int], Field(default_factory=list, description="Explicit list of nearest-neighbour k-points")]
+    nnkpts: list[NearestNeighborKpoint] = Field(default_factory=list, description="Explicit list of nearest-neighbour k-points")
     kmesh_tol: float = Field(1e-06, description="The tolerance to control if two kpoint belong to the same shell")
     higher_order_n: int = Field(1, description="The order of higher-order finite difference to get b-vectors and weights")
     higher_order_nearest_shells: bool = Field(False, description="Use the b-vectors on the nearest shells")
@@ -72,7 +69,7 @@ class Wannier90Input(BaseModel):
     use_bloch_phases: bool = Field(False, description="To use phases for initial projections")
     site_symmetry: bool = Field(False, description="To construct symmetry-adapted Wannier functions")
     symmetrize_eps: float = Field(0.001, description="The convergence tolerance used in the symmetry-adapted mode")
-    slwf_num: int = Field(..., description="The number of objective WFs for selective localization")
+    slwf_num: int | None = Field(None, description="The number of objective WFs for selective localization")
     slwf_constrain: bool = Field(False, description="Whether to constrain the centres of the objective WFs")
     slwf_lambda: float = Field(0.0, description="Value of the Lagrange multiplier for constraining the objective WFs")
     slwf_centres: list[CentreConstraint] = Field(default_factory=list, description="The centres to which the objective WFs are to be constrained")
@@ -132,20 +129,3 @@ class Wannier90Input(BaseModel):
     tran_group_threshold: float = Field(0.15, description="Distance that determines the grouping of WFs")
     one_dim_axis: Literal["x", "y", "z", None] = Field(None, description="Extended direction for a one-dimensional system")
     projections: list[Projection] = Field(default_factory=list, description="Projections for the Wannier functions")
-
-    @model_validator(mode='before')
-    @classmethod
-    def validate_before(cls, values):
-        for validator in before_validators:
-            values = validator(values)
-        return values
-
-    @model_validator(mode='after')
-    @classmethod
-    def validate_after(cls, values):
-        for validator in after_validators:
-            values = validator(cls, values)
-        return values
-
-    def __str__(self):
-        return custom_str(self)
