@@ -43,11 +43,11 @@ Pydantic models for the input of Wannier90.
 
 ### Command Line Interface
 
-The `wannier90_input` command line tool is automatically installed.
+The `winput` command line tool is automatically installed.
 It can be used from the console with the `--help` flag to show all subcommands:
 
 ```console
-$ wannier90_input --help
+$ winput --help
 ```
 
 > TODO show the most useful thing the CLI does! The CLI will have documentation
