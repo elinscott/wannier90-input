@@ -1,3 +1,5 @@
+"""Base model for the input of different versions of `Wannier90`."""
+
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, model_validator
@@ -5,6 +7,8 @@ from typing_extensions import Self
 
 
 class Wannier90InputTemplate(BaseModel):
+    """Base model for the input of different versions of `Wannier90`."""
+
     model_config = ConfigDict(validate_assignment=True)
 
     @model_validator(mode='before')
@@ -17,6 +21,7 @@ class Wannier90InputTemplate(BaseModel):
 
     @model_validator(mode='after')
     def atoms_frac_xor_cart(self) -> Self:
+        """Ensure that either atoms_frac or atoms_cart is specified, but not both."""
         if getattr(self, 'atoms_frac', None) and getattr(self, 'atoms_cart', None):
             raise ValueError("Specify either atoms_frac or atoms_cart, not both.")
         if not getattr(self, 'atoms_frac', None) and not getattr(self, 'atoms_cart', None):

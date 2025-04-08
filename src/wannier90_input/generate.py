@@ -99,13 +99,19 @@ def generate_pydantic_model(xml_path: Path, version: str = "latest") -> str:
     if version == "latest":
         version = ""
 
-    return f"""from pydantic import BaseModel, ConfigDict, Field, model_validator
+    return '"""' + f"""Pydantic model for the input of `Wannier90` version `{xml_path.parent.name}`.
+
+This file has been generated automatically. Do not edit it manually.
+""" + '"""' + f"""
+
+from pydantic import Field
 from typing import Annotated, Literal
-from numpydantic import NDArray, Shape
 from wannier90_input.models.template import Wannier90InputTemplate
 {import_parameter_models}
 
 class Wannier90Input{version}(Wannier90InputTemplate):
+    """ + '"""' + "Pydantic model for the input of `Wannier90.`" + '"""' + """
+
 """ + "\n".join([f"    {k}: {v}" for k, v in class_definitions.items()]) + "\n"
 
 

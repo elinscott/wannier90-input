@@ -1,12 +1,21 @@
+"""Pydantic model for the input of `Wannier90` version `0a0a3e5`.
+
+This file has been generated automatically. Do not edit it manually.
+"""
+
 from typing import Literal
 
 from pydantic import Field
 
-from wannier90_input.models.parameters import Projection
+from wannier90_input.models.parameters import (
+    Projection,
+)
 from wannier90_input.models.template import Wannier90InputTemplate
 
 
 class Wannier90Input(Wannier90InputTemplate):
+    """Pydantic model for the input of `Wannier90.`"""
+
     num_wann: int = Field(..., description="Number of WF")
     num_bands: int = Field(-1, description="Number of bands passed to the code")
     unit_cell_cart: float = Field(..., description="Unit cell vectors in Cartesian coordinates")

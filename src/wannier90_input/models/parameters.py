@@ -1,3 +1,5 @@
+"""Pydantic models for various `Wannier90` input parameters."""
+
 import textwrap
 from typing import Annotated
 
@@ -61,6 +63,8 @@ class SpecialPoint(BaseModel):
         return f"{self.name} {','.join(map(str, self.coordinates))}"
 
 class NearestNeighborKpoint(BaseModel):
+    """Wannier90 nnkpts input parameter."""
+
     kpoint_number: int
     neighbor_kpoint_number: int
     reciprocal_lattice_vector: Annotated[list[int], Field(min_length=3, max_length=3)]
@@ -70,6 +74,8 @@ class NearestNeighborKpoint(BaseModel):
 
 
 class Projection(BaseModel):
+    """Wannier90 projections input parameter."""
+
     fractional_site: FractionalCoordinate | None = Field(
         None, description="Site of the projection (fractional coordinates)")
     cartesian_site: Coordinate | None = Field(
@@ -84,6 +90,7 @@ class Projection(BaseModel):
 
     @model_validator(mode="before")
     def check_mutual_exclusivity(cls, values: dict[str, str | None]) -> dict[str, str | None]:
+        """Check that only one of the site fields is provided."""
         fractional_site = values.get('fractional_site')
         cartesian_site = values.get('cartesian_site')
         site = values.get('site')

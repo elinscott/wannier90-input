@@ -1,3 +1,5 @@
+"""XML schema taken from Wannier90."""
+
 from pathlib import Path
 
 directory = Path(__file__).parent

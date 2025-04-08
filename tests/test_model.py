@@ -1,3 +1,5 @@
+"""Test wannier90_input models."""
+
 import numpy as np
 
 from wannier90_input.models.latest import Wannier90Input
