@@ -1,7 +1,7 @@
 """Testing the `wannier90_input.convert` module."""
 
 from pathlib import Path
-from xml.etree.ElementTree import ElementTree
+from xml.etree.ElementTree import Element, ElementTree
 
 import pytest
 from defusedxml.ElementTree import parse
@@ -10,18 +10,20 @@ from wannier90_input.convert import InvalidXMLStructureError, convert_xml_tree_t
 
 
 @pytest.fixture
-def example_xml(data_directory: Path) -> ElementTree:
-    """Return the filepath of an example XML file,"""
+def example_xml(data_directory: Path) -> Element:
+    """Return the filepath of an example XML file."""
     xml = parse(data_directory / "valid.xml")
     assert isinstance(xml, ElementTree)
-    return xml
+    root = xml.getroot()
+    assert isinstance(root, Element)
+    return root
 
-def test_convert_valid_xml(example_xml: ElementTree) -> None:
+def test_convert_valid_xml(example_xml: Element) -> None:
     """Test converting valid XML."""
     convert_xml_tree_to_model(example_xml)
 
 @pytest.mark.parametrize("missing_field", ["name", "type", "description"])
-def test_convert_xml_missing_field(missing_field: str, example_xml: ElementTree) -> None:
+def test_convert_xml_missing_field(missing_field: str, example_xml: Element) -> None:
     """Test invalid XML that is missing a field."""
     # Remove the field "missing_field" from the valid xml
     field_removed = False
