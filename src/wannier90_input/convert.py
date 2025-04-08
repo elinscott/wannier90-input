@@ -14,20 +14,15 @@ from wannier90_input.patches import exclude as fields_to_exclude
 from wannier90_input.patches import fields as fields_to_patch
 from wannier90_input.patches import types as types_to_patch
 
-type_mapping = {
-    'I': int,
-    'R': float,
-    'L': bool,
-    'S': str,
-    'P': float
-}
+type_mapping = {"I": int, "R": float, "L": bool, "S": str, "P": float}
+
 
 class InvalidXMLStructureError(Exception):
     """Raised when the structure of the XML file is not as expected."""
 
 
 def convert_xml_tree_to_model(root: Element, version: str = "latest") -> str:
-    """Convert an XML tree to a string of python code that defines the corresponding Pydantic model."""
+    """Convert an XML tree to raw python code that defines the corresponding Pydantic model."""
     class_definitions = {}
 
     fields = set()
@@ -36,12 +31,13 @@ def convert_xml_tree_to_model(root: Element, version: str = "latest") -> str:
         if name in fields_to_exclude:
             continue
         if name in class_definitions:
-            warnings.warn(f"Duplicate field name '{name}' in XML file. Ignoring new definition.",
-                          stacklevel=2)
+            warnings.warn(
+                f"Duplicate field name '{name}' in XML file. Ignoring new definition.", stacklevel=2
+            )
             continue
 
         # For the moment, only implementing Wannier90 and not post-processing
-        if parameter.attrib['tool'] != 'w90':
+        if parameter.attrib["tool"] != "w90":
             continue
 
         field_def = _parse_parameter(parameter)
@@ -57,6 +53,7 @@ def convert_xml_tree_to_model(root: Element, version: str = "latest") -> str:
 
     return _generate_model_string(class_definitions, version=version)
 
+
 def _get_name(parameter: Element) -> str:
     name_element = parameter.find("name")
     if name_element is None:
@@ -64,6 +61,7 @@ def _get_name(parameter: Element) -> str:
     if name_element.text is None:
         raise InvalidXMLStructureError(f"Failed to parse name element for `{parameter}`.")
     return name_element.text
+
 
 def _parse_parameter(parameter: Element) -> str:
     name = _get_name(parameter)
@@ -80,9 +78,7 @@ def _parse_parameter(parameter: Element) -> str:
 
         description_element = parameter.find("description")
         if description_element is None:
-            raise InvalidXMLStructureError(
-                f"`{parameter}` is missing the `description` field."
-            )
+            raise InvalidXMLStructureError(f"`{parameter}` is missing the `description` field.")
         description = description_element.text
 
         choices = parameter.find("choices")
@@ -95,7 +91,7 @@ def _parse_parameter(parameter: Element) -> str:
         if default_str == "None" and choices is None:
             type_str += " | None"
 
-        return f"{type_str} = Field({default_str}, description=\"{description}\")"
+        return f'{type_str} = Field({default_str}, description="{description}")'
 
 
 def _get_type_str(name: str, xml_type: str, choices: Element | None) -> str:
@@ -106,8 +102,8 @@ def _get_type_str(name: str, xml_type: str, choices: Element | None) -> str:
         python_type = type_mapping[xml_type]
         if choices:
             type_str = "Literal[" + ", ".join(
-                [f"\"{c.text}\"" if python_type is str else python_type(c.text)
-                 for c in choices])
+                [f'"{c.text}"' if python_type is str else python_type(c.text) for c in choices]
+            )
             if name in types_to_allow_none:
                 type_str += ", None"
             type_str += "]"
@@ -117,8 +113,9 @@ def _get_type_str(name: str, xml_type: str, choices: Element | None) -> str:
     return type_str
 
 
-def _get_default_str(name: str, xml_type: str, default: Element | None,
-                     choices: Element | None) -> str:
+def _get_default_str(
+    name: str, xml_type: str, default: Element | None, choices: Element | None
+) -> str:
     if name in defaults_to_patch:
         value = defaults_to_patch[name]
         default_str = '"' + value + '"' if isinstance(value, str) else str(value)
@@ -129,16 +126,20 @@ def _get_default_str(name: str, xml_type: str, default: Element | None,
     elif name in types_to_allow_none:
         default_str = "None"
     else:
-        default_str = '...'
+        default_str = "..."
     return default_str
 
 
 def _generate_model_string(class_definitions: dict[str, str], version: str) -> str:
-    """Convert a dictionary of class definitions to a string of python code defining a Pydantic model."""
-    return '"""' + f"""Pydantic model for the input of `Wannier90` version `{version}`.
+    """Convert a dictionary of class definitions to raw python code defining a Pydantic model."""
+    return (
+        '"""'
+        + f"""Pydantic model for the input of `Wannier90` version `{version}`.
 
 This file has been generated automatically. Do not edit it manually.
-""" + '"""' + f"""
+"""
+        + '"""'
+        + f"""
 
 # ruff: noqa
 
@@ -148,6 +149,13 @@ from wannier90_input.models.template import Wannier90InputTemplate
 {import_parameter_models}
 
 class Wannier90Input(Wannier90InputTemplate):
-    """ + '"""' + "Pydantic model for the input of `Wannier90.`" + '"""' + """
+    """
+        + '"""'
+        + "Pydantic model for the input of `Wannier90.`"
+        + '"""'
+        + """
 
-""" + "\n".join([f"    {k}: {v}" for k, v in class_definitions.items()]) + "\n"
+"""
+        + "\n".join([f"    {k}: {v}" for k, v in class_definitions.items()])
+        + "\n"
+    )

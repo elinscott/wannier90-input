@@ -2,7 +2,7 @@
 
 fields = {
     "unit_cell_cart": 'list[Coordinate] = Field(description="Unit cell in cartesian coordinates", '
-    'min_length=3, max_length=3)',
+    "min_length=3, max_length=3)",
     "kpoints": 'list[FractionalCoordinate] = Field(default_factory=list, description="k-points in '
     'relative crystallographic units")',
     "atoms_cart": 'list[AtomCart] | None = Field(None, description="Positions of atoms in '
@@ -11,7 +11,7 @@ fields = {
     'fractional coordinates")',
     "shell_list": 'list[int] = Field(default_factory=list, description="Which shells to use in '
     'finite difference formula")',
-    "nnkpts": 'list[NearestNeighborKpoint] = Field(default_factory=list, '
+    "nnkpts": "list[NearestNeighborKpoint] = Field(default_factory=list, "
     'description="Explicit list of nearest-neighbour k-points")',
     "projections": 'list[Projection] = Field(default_factory=list, description="Projections for '
     'the Wannier functions")',
@@ -25,7 +25,7 @@ fields = {
     'to which the objective WFs are to be constrained")',
     "wannier_plot_list": 'list[int] = Field(default_factory=list, description="List of WF to '
     'plot")',
-    "kpoint_path": 'list[tuple[SpecialPoint, SpecialPoint]] = Field(default_factory=list, '
+    "kpoint_path": "list[tuple[SpecialPoint, SpecialPoint]] = Field(default_factory=list, "
     'description="K-point path for the interpolated band structure")',
     "bands_plot_project": 'list[int] = Field(default_factory=list, description="WF to project the '
     'band structure onto")',
@@ -39,9 +39,17 @@ types = {
     "mp_grid": "tuple[int, int, int]",
 }
 
-allow_none = ["dis_win_min", "dis_win_max", "dis_froz_min", "dis_froz_max",
-              "fermi_energy_min", "fermi_energy_max", "one_dim_axis", "kpoints",
-              "slwf_num"]
+allow_none = [
+    "dis_win_min",
+    "dis_win_max",
+    "dis_froz_min",
+    "dis_froz_max",
+    "fermi_energy_min",
+    "fermi_energy_max",
+    "one_dim_axis",
+    "kpoints",
+    "slwf_num",
+]
 
 exclude = ["devel_flag"]
 
@@ -83,7 +91,7 @@ defaults = {
     "write_tb": False,
     "hr_cutoff": 0.0,
     "dist_cutoff": 1000.0,
-    "dist_cutoff_mode": 'three_dim',
+    "dist_cutoff_mode": "three_dim",
     "write_u_matrices": False,
     "transport": False,
     "higher_order_nearest_shells": False,
@@ -133,4 +141,5 @@ defaults = {
     "tran_write_ht": False,
     "tran_read_ht": False,
     "tran_use_same_lead": False,
-    "tran_group_threshold": 0.15}
+    "tran_group_threshold": 0.15,
+}

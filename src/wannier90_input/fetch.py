@@ -1,14 +1,13 @@
-"""Fetch the XML files from the Wannier90 Github repo.
-
-the xml files of all tags from https://github.com/wannier-developers/wannier90/blob/<tag>/docs/docs/parameters/parameters.xml and adds them to this folder.
-"""
+"""Fetch the XML files from the Wannier90 Github repo."""
 
 import base64
 import os
 import shutil
+import warnings
 from collections.abc import Iterable
 
 from github3 import GitHub, login
+from github3.exceptions import NotFoundError
 from github3.repos import Repository
 from github3.repos.commit import RepoCommit
 from github3.repos.tag import RepoTag
@@ -25,7 +24,9 @@ def create_github_session(token: str | None = None) -> GitHub:
     return gh
 
 
-def get_latest_commit(owner: str, repo: str, token: str | None = None, branch: str | None = None) -> RepoCommit:
+def get_latest_commit(
+    owner: str, repo: str, token: str | None = None, branch: str | None = None
+) -> RepoCommit:
     """Get the latest commit of a given GitHub repository."""
     gh = create_github_session(token)
     repository: Repository = gh.repository(owner, repo)
@@ -39,16 +40,23 @@ def list_repo_tags(owner: str, repo: str, token: str | None = None) -> Iterable[
     repository: Repository = gh.repository(owner, repo)
 
     if repository is None:
-        print(f"Repository {owner}/{repo} not found or access denied.")
+        warnings.warn(f"Repository {owner}/{repo} not found or access denied.", stacklevel=2)
         return []
 
     tags = repository.tags()
-    assert isinstance(tags, Iterable)
+    if not isinstance(tags, Iterable):
+        raise ValueError(f"Failed to find tags for {owner}/{repo}")
     return tags
 
 
-def download_file(owner: str, repo: str, file_path: str, token: str | None = None,
-                  tag: RepoTag | None = None, commit: RepoCommit | None = None) -> None:
+def download_file(
+    owner: str,
+    repo: str,
+    file_path: str,
+    token: str | None = None,
+    tag: RepoTag | None = None,
+    commit: RepoCommit | None = None,
+) -> None:
     """Download a specific file from a given GitHub repository at a specified tag using github3."""
     gh = create_github_session(token)
     repository = gh.repository(owner, repo)
@@ -62,13 +70,13 @@ def download_file(owner: str, repo: str, file_path: str, token: str | None = Non
         raise ValueError("Either tag or commit must be provided.")
 
     if repository is None:
-        print(f"Repository {owner}/{repo} not found or access denied.")
+        warnings.warn(f"Repository {owner}/{repo} not found or access denied.", stacklevel=2)
         return
 
     # Fetch the file content
     try:
         file_content = repository.file_contents(file_path, ref=commit.sha)
-    except:
+    except NotFoundError:
         return
 
     # Create the directory (skip already-fetched commits)
@@ -78,9 +86,8 @@ def download_file(owner: str, repo: str, file_path: str, token: str | None = Non
 
     if file_content:
         decoded_content = base64.b64decode(file_content.content)
-        with open(xml_directory / name / "parameters.xml", 'wb') as f:
+        with open(xml_directory / name / "parameters.xml", "wb") as f:
             f.write(decoded_content)
-        print(f"File {file_path} downloaded successfully for commit {name}.")
 
 
 def fetch_xml() -> None:

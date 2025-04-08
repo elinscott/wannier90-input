@@ -33,6 +33,7 @@ def update() -> None:
     """Download the latest XML files and update the pydantic models accordingly."""
     from wannier90_input.fetch import fetch_xml
     from wannier90_input.generate import generate_models
+
     fetch_xml()
     generate_models()
 
@@ -41,7 +42,9 @@ def update() -> None:
 def schema() -> None:
     """Print the JSON schema of the latest Wannier90Input model."""
     from wannier90_input.models.latest import Wannier90Input
-    print(json.dumps(Wannier90Input.model_json_schema(), indent=2))
+
+    print(json.dumps(Wannier90Input.model_json_schema(), indent=2))  # noqa: T201
+
 
 if __name__ == "__main__":
     main()
