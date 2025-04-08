@@ -6,3 +6,4 @@ Usage
 
 .. automodule:: wannier90_input.models.parameters
     :members:
+
