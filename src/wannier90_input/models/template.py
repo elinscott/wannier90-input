@@ -35,7 +35,7 @@ class Wannier90InputTemplate(BaseModel):
 
 
     def __str__(self) -> str:
-        """Return the model formatted as Wannier90 expects it"""
+        """Return the model formatted as Wannier90 expects it."""
         # Iterate over the fields
         lines: list[str] = []
         for name, field in self.model_fields.items():
@@ -44,8 +44,8 @@ class Wannier90InputTemplate(BaseModel):
                 continue
 
             if name in ['projections', 'unit_cell_cart', 'atoms_frac', 'atoms_cart', 'dis_spheres',
-                        'shell_list', 'kpoints', 'nnkpts', 'select_projections', 'slwf_centres', 'wannier_plot_list',
-                        'kpoint_path', 'bands_plot_project']:
+                        'shell_list', 'kpoints', 'nnkpts', 'select_projections', 'slwf_centres',
+                        'wannier_plot_list', 'kpoint_path', 'bands_plot_project']:
                 if name in ['unit_cell_cart']:
                     units = 'ang'
                 else:
@@ -74,14 +74,16 @@ def _sanitize(string: str, to_remove: str) -> str:
     return string
 
 
-def _block_str(name: str, model: BaseModel, units: str | None = None, to_remove: str = ',[]') -> list[str]:
+def _block_str(name: str, model: BaseModel, units: str | None = None,
+               to_remove: str = ',[]') -> list[str]:
     content = getattr(model, name)
     # Only print non-empty blocks
     if content == []:
         return []
     unit_list = [indent + units] if units else []
 
-    return ["", f"begin {name}"] + unit_list + [indent + _sanitize(str(x), to_remove) for x in content] + [f"end {name}", ""]
+    return ["", f"begin {name}"] + unit_list + \
+        [indent + _sanitize(str(x), to_remove) for x in content] + [f"end {name}", ""]
 
 
 def _keyword_str(name: str, model: BaseModel) -> list[str]:
@@ -90,6 +92,7 @@ def _keyword_str(name: str, model: BaseModel) -> list[str]:
 
 def _list_keyword_str(name: str, model: BaseModel, join_with: str = ' ') -> list[str]:
     value = getattr(model, name)
-    assert isinstance(value, (list, tuple))
+    if not isinstance(value, list | tuple):
+        raise TypeError(f"Expected list or tuple for {name}, got {type(value)}")
     return [f"{name} = " + join_with.join([str(x) for x in value])] if value else []
 

@@ -3,23 +3,13 @@
 This file has been generated automatically. Do not edit it manually.
 """
 
-from typing import Annotated, Literal
+# ruff: noqa
 
 from pydantic import Field
-
-from wannier90_input.models.parameters import (
-    AtomCart,
-    AtomFrac,
-    CentreConstraint,
-    Coordinate,
-    DisentanglementSphere,
-    FractionalCoordinate,
-    NearestNeighborKpoint,
-    Projection,
-    SpecialPoint,
-)
+from typing import Annotated, Literal
 from wannier90_input.models.template import Wannier90InputTemplate
-
+from wannier90_input.models.parameters import (AtomFrac, AtomCart, Projection, DisentanglementSphere, CentreConstraint,
+    SpecialPoint, Projection, NearestNeighborKpoint, Coordinate, FractionalCoordinate)
 
 class Wannier90Input(Wannier90InputTemplate):
     """Pydantic model for the input of `Wannier90.`"""

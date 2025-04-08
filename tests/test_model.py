@@ -12,7 +12,7 @@ def test_wannier90_input() -> None:
     inp = Wannier90Input(num_wann=num_wann,
                          unit_cell_cart=np.identity(3),
                          mp_grid=[3, 3, 3],
-                         atoms_frac=[dict(symbol='O', position=[0, 0, 0])],
+                         atoms_frac=[{'symbol': 'O', 'position': [0, 0, 0]}],
                          projections=[{'site': 'O', 'ang_mtm': 'sp3'}])
     assert inp.num_wann == num_wann  # A direct argument
     assert inp.num_bands == num_wann  # Defined via a validator

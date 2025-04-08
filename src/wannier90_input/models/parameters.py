@@ -34,7 +34,8 @@ class DisentanglementSphere(BaseModel):
     """Wannier90 dis_spheres input parameter."""
 
     center: FractionalCoordinate = Field(...,
-                                         description="Center of the sphere (in crystallographic coordinates)")
+                                         description="Center of the sphere (in "
+                                         "crystallographic coordinates)")
     radius: float = Field(..., description="Radius of the sphere (inverse Angstrom)")
 
     def __str__(self) -> str:
@@ -45,8 +46,8 @@ class CentreConstraint(BaseModel):
     """Wannier90 slwf_centres input parameter."""
 
     number: int = Field(..., description="Wannier function index")
-    center: FractionalCoordinate = Field(
-        ..., description="Centre on which to constrain the Wannier function (fractional coordinates)")
+    center: FractionalCoordinate = Field(...,
+        description="Centre on which to constrain the Wannier function (fractional coordinates)")
 
     def __str__(self) -> str:
         return f"{self.number} {','.join(map(str, self.center))}"
@@ -70,7 +71,8 @@ class NearestNeighborKpoint(BaseModel):
     reciprocal_lattice_vector: Annotated[list[int], Field(min_length=3, max_length=3)]
 
     def __str__(self) -> str:
-        return f"{self.kpoint_number} {self.neighbor_kpoint_number} {' '.join(map(str, self.reciprocal_lattice_vector))}"
+        return f"{self.kpoint_number} {self.neighbor_kpoint_number} " \
+            f"{' '.join(map(str, self.reciprocal_lattice_vector))}"
 
 
 class Projection(BaseModel):
@@ -89,6 +91,7 @@ class Projection(BaseModel):
         1.0, description="the value of Z/a for the radial part of the atomic orbital")
 
     @model_validator(mode="before")
+    @classmethod
     def check_mutual_exclusivity(cls, values: dict[str, str | None]) -> dict[str, str | None]:
         """Check that only one of the site fields is provided."""
         fractional_site = values.get('fractional_site')
@@ -112,8 +115,10 @@ class Projection(BaseModel):
         elif self.site is not None:
             site_str = self.site
         else:
-            raise ValueError("No site information found. This should have been prevented by the validator...")
-        return f"{site_str}:{self.ang_mtm}:[{','.join([str(x) for x in self.zaxis])}]:[{','.join([str(x) for x in self.xaxis])}]:{self.radial}:{self.zona}"
+            raise ValueError("No site information found. This should have been prevented by the "
+                             "validator...")
+        return f"{site_str}:{self.ang_mtm}:[{','.join([str(x) for x in self.zaxis])}]:[" \
+            + f"{','.join([str(x) for x in self.xaxis])}]:{self.radial}:{self.zona}"
 
 
 parameter_models: list[type[BaseModel]] = [
