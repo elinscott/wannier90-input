@@ -1,9 +1,8 @@
 """Pydantic models for the input of Wannier90."""
 
-from .api import hello, square
+from wannier90_input.models.latest import Wannier90Input
 
 # being explicit about exports is important!
 __all__ = [
-    "hello",
-    "square",
+    "Wannier90Input",
 ]

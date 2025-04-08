@@ -75,6 +75,7 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx_automodapi.automodapi",
     "sphinx_automodapi.smart_resolver",
+    "sphinxcontrib.autodoc_pydantic",
     # 'texext',
 ]
 
@@ -235,6 +236,9 @@ texinfo_documents = [
 # epub_exclude_files = ['search.html']
 
 # -- Extension configuration -------------------------------------------------
+autodoc_pydantic_model_show_json = True
+autodoc_pydantic_model_show_config_summary = False
+autodoc_pydantic_field_list_validators = False
 
 # -- Options for intersphinx extension ---------------------------------------
 
