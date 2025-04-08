@@ -89,7 +89,8 @@ jobs:
         run:
           uvx -p ${{ matrix.python-version }} --with tox-uv tox -e doctests
       - name: Upload coverage report to codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         if: success()
         with:
           file: coverage.xml
+          token: ${{ secrets.CODECOV_TOKEN }}
