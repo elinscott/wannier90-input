@@ -35,7 +35,7 @@ class DisentanglementSphere(BaseModel):
                                          description="Center of the sphere (in crystallographic coordinates)")
     radius: float = Field(..., description="Radius of the sphere (inverse Angstrom)")
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{','.join(map(str, self.center))} {self.radius}"
 
 
@@ -46,7 +46,7 @@ class CentreConstraint(BaseModel):
     center: FractionalCoordinate = Field(
         ..., description="Centre on which to constrain the Wannier function (fractional coordinates)")
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.number} {','.join(map(str, self.center))}"
 
 
@@ -57,15 +57,15 @@ class SpecialPoint(BaseModel):
     coordinates: FractionalCoordinate = Field(
         ..., description="Coordinates of the special point (fractional coordinates)")
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.name} {','.join(map(str, self.coordinates))}"
-    
+
 class NearestNeighborKpoint(BaseModel):
     kpoint_number: int
     neighbor_kpoint_number: int
     reciprocal_lattice_vector: Annotated[list[int], Field(min_length=3, max_length=3)]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.kpoint_number} {self.neighbor_kpoint_number} {' '.join(map(str, self.reciprocal_lattice_vector))}"
 
 
@@ -83,7 +83,7 @@ class Projection(BaseModel):
         1.0, description="the value of Z/a for the radial part of the atomic orbital")
 
     @model_validator(mode="before")
-    def check_mutual_exclusivity(cls, values):
+    def check_mutual_exclusivity(cls, values: dict[str, str | None]) -> dict[str, str | None]:
         fractional_site = values.get('fractional_site')
         cartesian_site = values.get('cartesian_site')
         site = values.get('site')
@@ -97,13 +97,15 @@ class Projection(BaseModel):
                 "At least one of 'fractional_site', 'cartesian_site', or 'site' must be provided.")
         return values
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self.fractional_site is not None:
             site_str = 'f=' + ','.join([str(x) for x in self.fractional_site])
         elif self.cartesian_site is not None:
             site_str = 'c=' + ','.join([str(x) for x in self.cartesian_site])
-        else:
+        elif self.site is not None:
             site_str = self.site
+        else:
+            raise ValueError("No site information found. This should have been prevented by the validator...")
         return f"{site_str}:{self.ang_mtm}:[{','.join([str(x) for x in self.zaxis])}]:[{','.join([str(x) for x in self.xaxis])}]:{self.radial}:{self.zona}"
 
 

@@ -1,30 +1,33 @@
+from typing import Any
+
 from pydantic import BaseModel, ConfigDict, model_validator
+from typing_extensions import Self
+
 
 class Wannier90InputTemplate(BaseModel):
     model_config = ConfigDict(validate_assignment=True)
 
     @model_validator(mode='before')
     @classmethod
-    def set_default_num_bands(cls, values):
+    def set_default_num_bands(cls, values: dict[str, Any]) -> dict[str, Any]:
+        """Set the default num_bands to num_wann if not provided."""
         if "num_bands" not in values:
             values["num_bands"] = values["num_wann"]
         return values
 
     @model_validator(mode='after')
-    @classmethod
-    def atoms_frac_xor_cart(cls, values):
-        if values.atoms_frac and values.atoms_cart:
+    def atoms_frac_xor_cart(self) -> Self:
+        if getattr(self, 'atoms_frac', None) and getattr(self, 'atoms_cart', None):
             raise ValueError("Specify either atoms_frac or atoms_cart, not both.")
-        if not values.atoms_frac and not values.atoms_cart:
+        if not getattr(self, 'atoms_frac', None) and not getattr(self, 'atoms_cart', None):
             raise ValueError("Specify either atoms_frac or atoms_cart.")
-        return values
+        return self
 
     @classmethod
-    def from_str(cls, string: str):
+    def from_str(cls, string: str) -> "Wannier90InputTemplate":
         """Convert a string to a Wannier90Input Model instance."""
-
         raise NotImplementedError()
-        
+
 
     def __str__(self) -> str:
         """Return the model formatted as Wannier90 expects it"""
@@ -60,13 +63,13 @@ class Wannier90InputTemplate(BaseModel):
 indent = ' '
 
 
-def _sanitize(string: str, to_remove: str):
+def _sanitize(string: str, to_remove: str) -> str:
     for char in to_remove:
         string = string.replace(char, "")
     return string
 
 
-def _block_str(name: str, model: BaseModel, units: str | None = None, to_remove=',[]') -> list[str]:
+def _block_str(name: str, model: BaseModel, units: str | None = None, to_remove: str = ',[]') -> list[str]:
     content = getattr(model, name)
     # Only print non-empty blocks
     if content == []:

@@ -5,8 +5,10 @@ the xml files of all tags from https://github.com/wannier-developers/wannier90/b
 
 import base64
 import os
+import shutil
+from collections.abc import Iterable
 
-import github3
+from github3 import GitHub, login
 from github3.repos import Repository
 from github3.repos.commit import RepoCommit
 from github3.repos.tag import RepoTag
@@ -14,23 +16,25 @@ from github3.repos.tag import RepoTag
 from wannier90_input.xml_files import directory as xml_directory
 
 
-def create_github_session(token: str | None = None):
+def create_github_session(token: str | None = None) -> GitHub:
+    """Create a GitHub session with optional authentication."""
     if token is None:
-        gh = github3.GitHub()
+        gh = GitHub()
     else:
-        gh = github3.login(token=token)
+        gh = login(token=token)
     return gh
 
 
-def get_latest_commit(owner: str, repo: str, token: str | None = None, branch: str | None = None):
+def get_latest_commit(owner: str, repo: str, token: str | None = None, branch: str | None = None) -> RepoCommit:
+    """Get the latest commit of a given GitHub repository."""
     gh = create_github_session(token)
     repository: Repository = gh.repository(owner, repo)
     branch = branch or repository.default_branch
     return repository.branch(branch).commit
 
 
-def list_repo_tags(owner: str, repo: str, token: str | None = None) -> list[RepoTag]:
-    """Lists all tags of a given GitHub repository."""
+def list_repo_tags(owner: str, repo: str, token: str | None = None) -> Iterable[RepoTag]:
+    """List all tags of a given GitHub repository."""
     gh = create_github_session(token)
     repository: Repository = gh.repository(owner, repo)
 
@@ -38,11 +42,14 @@ def list_repo_tags(owner: str, repo: str, token: str | None = None) -> list[Repo
         print(f"Repository {owner}/{repo} not found or access denied.")
         return []
 
-    return repository.tags()
+    tags = repository.tags()
+    assert isinstance(tags, Iterable)
+    return tags
 
 
-def download_file(owner: str, repo: str, file_path: str, token: str | None = None, tag: RepoTag | None = None, commit: RepoCommit | None = None):
-    """Downloads a specific file from a given GitHub repository at a specified tag using github3."""
+def download_file(owner: str, repo: str, file_path: str, token: str | None = None,
+                  tag: RepoTag | None = None, commit: RepoCommit | None = None) -> None:
+    """Download a specific file from a given GitHub repository at a specified tag using github3."""
     gh = create_github_session(token)
     repository = gh.repository(owner, repo)
 
@@ -76,7 +83,8 @@ def download_file(owner: str, repo: str, file_path: str, token: str | None = Non
         print(f"File {file_path} downloaded successfully for commit {name}.")
 
 
-def fetch_xml():
+def fetch_xml() -> None:
+    """Fetch the XML files from the Wannier90 GitHub repo."""
     owner = "wannier-developers"
     repo = "wannier90"
     file_path = "docs/docs/parameters/parameters.xml"
@@ -92,9 +100,9 @@ def fetch_xml():
     latest_commit = get_latest_commit(owner, repo, token)
     download_file(owner, repo, file_path, token, commit=latest_commit)
 
-    # Link the latest commit to the folder "latest"
+    # Copy the latest commit to the folder "latest"
     src = xml_directory / latest_commit.sha[:7] / "parameters.xml"
     dst = xml_directory / "latest" / "parameters.xml"
     if dst.is_file():
         dst.unlink()
-    dst.symlink_to(src)
+    shutil.copy(src, dst)

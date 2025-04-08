@@ -4,6 +4,7 @@ The python code is generated statically so that the models can be inspected stat
 """
 
 import warnings
+from pathlib import Path
 from xml.etree import ElementTree as ET
 
 from wannier90_input.models import directory as model_directory
@@ -15,20 +16,16 @@ from wannier90_input.patches import fields as fields_to_patch
 from wannier90_input.patches import types as types_to_patch
 from wannier90_input.xml_files import files as xml_files
 
-
-def parse_type(xml_type: str):
-    """Map XML type notation to Python types."""
-    type_mapping = {
-        'I': int,
-        'R': float,
-        'L': bool,
-        'S': str,
-        'P': float
-    }
-    return type_mapping.get(xml_type, str)
+type_mapping = {
+    'I': int,
+    'R': float,
+    'L': bool,
+    'S': str,
+    'P': float
+}
 
 
-def generate_pydantic_model(xml_path: str, version: str = "latest") -> str:
+def generate_pydantic_model(xml_path: Path, version: str = "latest") -> str:
     """Parse the XML file and generate a Pydantic model."""
     tree = ET.parse(xml_path)
     root = tree.getroot()
@@ -66,7 +63,7 @@ def generate_pydantic_model(xml_path: str, version: str = "latest") -> str:
             if name in types_to_patch:
                 type_str = types_to_patch[name]
             else:
-                python_type = parse_type(xml_type)
+                python_type = type_mapping[xml_type]
                 if choices:
                     type_str = "Literal[" + ", ".join(
                         [f"\"{c.text}\"" if python_type == str else python_type(c.text) for c in choices])
@@ -112,7 +109,8 @@ class Wannier90Input{version}(Wannier90InputTemplate):
 """ + "\n".join([f"    {k}: {v}" for k, v in class_definitions.items()]) + "\n"
 
 
-def generate_models():
+def generate_models() -> None:
+    """Generate Pydantic models from XML files."""
     for name, xml_file in xml_files.items():
         model_str = generate_pydantic_model(xml_file)
 

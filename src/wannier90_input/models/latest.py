@@ -1,13 +1,24 @@
-from pydantic import BaseModel, ConfigDict, Field, model_validator
 from typing import Annotated, Literal
-from numpydantic import NDArray, Shape
+
+from pydantic import Field
+
+from wannier90_input.models.parameters import (
+    AtomCart,
+    AtomFrac,
+    CentreConstraint,
+    Coordinate,
+    DisentanglementSphere,
+    FractionalCoordinate,
+    NearestNeighborKpoint,
+    Projection,
+    SpecialPoint,
+)
 from wannier90_input.models.template import Wannier90InputTemplate
-from wannier90_input.models.parameters import (AtomFrac, AtomCart, Projection, DisentanglementSphere, CentreConstraint,
-    SpecialPoint, Projection, NearestNeighborKpoint, Coordinate, FractionalCoordinate)
+
 
 class Wannier90Input(Wannier90InputTemplate):
     num_wann: int = Field(..., description="Number of WF")
-    num_bands: int = Field(..., description="Number of bands passed to the code")
+    num_bands: int = Field(-1, description="Number of bands passed to the code")
     unit_cell_cart: list[Coordinate] = Field(description="Unit cell in cartesian coordinates", min_length=3, max_length=3)
     atoms_cart: list[AtomCart] | None = Field(None, description="Positions of atoms in Cartesian coordinates")
     atoms_frac: list[AtomFrac] | None = Field(None, description="Positions of atoms in fractional coordinates")

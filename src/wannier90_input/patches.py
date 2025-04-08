@@ -46,6 +46,7 @@ allow_none = ["dis_win_min", "dis_win_max", "dis_froz_min", "dis_froz_max",
 exclude = ["devel_flag"]
 
 defaults = {
+    "num_bands": -1,  # This will be overwritten by the validator
     "gamma_only": False,
     "spinors": False,
     "search_shells": 36,
