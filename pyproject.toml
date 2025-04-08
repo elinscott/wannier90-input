@@ -55,7 +55,9 @@ dependencies = [
     "more_click",
     "typing-extensions",
     "github3.py",
-    "pydantic>=2.0"
+    "pydantic>=2.0",
+    "numpy>=2.0",
+    "defusedxml",
 ]
 
 # see https://peps.python.org/pep-0735/ and https://docs.astral.sh/uv/concepts/dependencies/#dependency-groups
@@ -127,7 +129,7 @@ Documentation = "https://wannier90_input.readthedocs.io"
 Funding = "https://github.com/sponsors/elinscott"
 
 [project.scripts]
-wannier90_input = "wannier90_input.cli:main"
+winput = "wannier90_input.cli:main"
 
 [tool.cruft]
 skip = [
@@ -219,6 +221,8 @@ ignore = [
 "docs/source/conf.py" = ["ERA001"]
 # Prints are okay in notebooks
 "notebooks/**/*.ipynb" = ["T201"]
+# assert is OK in tests
+"tests/**/*.py" = ["S101"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "pep257"

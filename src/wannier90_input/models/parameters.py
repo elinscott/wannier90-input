@@ -1,96 +1,164 @@
-from pydantic import BaseModel, Field
-from typing import Annotated, Type
+"""Pydantic models for various `Wannier90` input parameters."""
+
 import textwrap
-from pydantic import ValidationError, model_validator
+from typing import Annotated
 
-Fraction= Annotated[float, Field(ge=0.0, le=1.0)]
+from pydantic import BaseModel, Field, model_validator
+
+Fraction = Annotated[float, Field(ge=0.0, le=1.0)]
 FractionalCoordinate = Annotated[list[Fraction], Field(min_length=3, max_length=3)]
-
-
-def FractionalCoordinateFactory() -> FractionalCoordinate:
-    return FractionalCoordinate([0.0, 0.0, 0.0])
-
-
 Coordinate = Annotated[list[float], Field(min_length=3, max_length=3)]
 
 
-class AtomsFrac(BaseModel):
-    """Wannier90 atoms_frac input parameter."""
+class AtomFrac(BaseModel):
+    """One entry in the Wannier90 atoms_frac input parameter."""
 
-    symbols: list[str] = Field(..., description="Atomic symbols")
-    positions: list[FractionalCoordinate] = Field(..., description="Fractional coordinates of atoms")
+    symbol: str = Field(..., description="Atomic symbol")
+    position: FractionalCoordinate = Field(..., description="Fractional coordinates of the atom")
 
-class AtomsCart(BaseModel):
-    """Wannier90 atoms_cart input parameter."""
+    def __str__(self) -> str:
+        return f"{self.symbol} {' '.join(map(str, self.position))}"
 
-    symbols: list[str] = Field(..., description="Atomic symbols")
-    positions: list[Coordinate] = Field(..., description="Cartesian coordinates of atoms")
+
+class AtomCart(BaseModel):
+    """One entry in the Wannier90 atoms_cart input parameter."""
+
+    symbol: str = Field(..., description="Atomic symbol")
+    position: Coordinate = Field(..., description="Cartesian coordinates of the atom")
+
+    def __str__(self) -> str:
+        return f"{self.symbol} {' '.join(map(str, self.position))}"
+
 
 class DisentanglementSphere(BaseModel):
     """Wannier90 dis_spheres input parameter."""
 
-    center: FractionalCoordinate = Field(..., description="Center of the sphere (in crystallographic coordinates)")
+    center: FractionalCoordinate = Field(
+        ..., description="Center of the sphere (in crystallographic coordinates)"
+    )
     radius: float = Field(..., description="Radius of the sphere (inverse Angstrom)")
+
+    def __str__(self) -> str:
+        return f"{','.join(map(str, self.center))} {self.radius}"
+
 
 class CentreConstraint(BaseModel):
     """Wannier90 slwf_centres input parameter."""
 
     number: int = Field(..., description="Wannier function index")
-    center: FractionalCoordinate = Field(..., description="Centre on which to constrain the Wannier function (fractional coordinates)")
+    center: FractionalCoordinate = Field(
+        ...,
+        description="Centre on which to constrain the Wannier function (fractional coordinates)",
+    )
+
+    def __str__(self) -> str:
+        return f"{self.number} {','.join(map(str, self.center))}"
+
 
 class SpecialPoint(BaseModel):
     """Wannier90 kpoint_path input parameter."""
 
     name: str = Field(..., description="Name of the special point")
-    coordinates: FractionalCoordinate = Field(..., description="Coordinates of the special point (fractional coordinates)")
+    coordinates: FractionalCoordinate = Field(
+        ..., description="Coordinates of the special point (fractional coordinates)"
+    )
+
+    def __str__(self) -> str:
+        return f"{self.name} {','.join(map(str, self.coordinates))}"
+
+
+class NearestNeighborKpoint(BaseModel):
+    """Wannier90 nnkpts input parameter."""
+
+    kpoint_number: int
+    neighbor_kpoint_number: int
+    reciprocal_lattice_vector: Annotated[list[int], Field(min_length=3, max_length=3)]
+
+    def __str__(self) -> str:
+        return (
+            f"{self.kpoint_number} {self.neighbor_kpoint_number} "
+            f"{' '.join(map(str, self.reciprocal_lattice_vector))}"
+        )
+
 
 class Projection(BaseModel):
-    fractional_site: FractionalCoordinate | None = Field(None, description="Site of the projection (fractional coordinates)")
-    cartesian_site: Coordinate | None = Field(None, description="Cartesian coordinates of the projection")
+    """Wannier90 projections input parameter."""
+
+    fractional_site: FractionalCoordinate | None = Field(
+        None, description="Site of the projection (fractional coordinates)"
+    )
+    cartesian_site: Coordinate | None = Field(
+        None, description="Cartesian coordinates of the projection"
+    )
     site: str | None = Field(None, description="Site of the projection (by atom label)")
     ang_mtm: str = Field(..., description="Angular momentum of the projection")
     zaxis: tuple[int, int, int] = Field((0, 0, 1), description="z-axis for the projection")
     xaxis: tuple[int, int, int] = Field((1, 0, 0), description="x-axis for the projection")
     radial: int = Field(1, description="Radial component of the projection")
-    zona: float = Field(1.0, description="the value of Z/a for the radial part of the atomic orbital")
+    zona: float = Field(
+        1.0, description="the value of Z/a for the radial part of the atomic orbital"
+    )
 
     @model_validator(mode="before")
-    def check_mutual_exclusivity(cls, values):
-        fractional_site = values.get('fractional_site')
-        cartesian_site = values.get('cartesian_site')
-        site = values.get('site')
-        provided_fields = [field for field in [fractional_site, cartesian_site, site] if field is not None]
+    @classmethod
+    def check_mutual_exclusivity(cls, values: dict[str, str | None]) -> dict[str, str | None]:
+        """Check that only one of the site fields is provided."""
+        fractional_site = values.get("fractional_site")
+        cartesian_site = values.get("cartesian_site")
+        site = values.get("site")
+        provided_fields = [
+            field for field in [fractional_site, cartesian_site, site] if field is not None
+        ]
         if len(provided_fields) > 1:
-            raise ValueError("Only one of 'fractional_site', 'cartesian_site', or 'site' can be provided.")
+            raise ValueError(
+                "Only one of 'fractional_site', 'cartesian_site', or 'site' can be provided."
+            )
         if len(provided_fields) == 0:
-            raise ValueError("At least one of 'fractional_site', 'cartesian_site', or 'site' must be provided.")
+            raise ValueError(
+                "At least one of 'fractional_site', 'cartesian_site', or 'site' must be provided."
+            )
         return values
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self.fractional_site is not None:
-            site_str = 'f=' + ','.join([str(x) for x in self.fractional_site])
+            site_str = "f=" + ",".join([str(x) for x in self.fractional_site])
         elif self.cartesian_site is not None:
-            site_str = 'c=' + ','.join([str(x) for x in self.cartesian_site])
-        else:
+            site_str = "c=" + ",".join([str(x) for x in self.cartesian_site])
+        elif self.site is not None:
             site_str = self.site
-        return f"{site_str}:{self.ang_mtm}:[{','.join([str(x) for x in self.zaxis])}]:[{','.join([str(x) for x in self.xaxis])}]:{self.radial}:{self.zona}"
-    
-parameter_models: list[Type[BaseModel]] = [
-    AtomsFrac,
-    AtomsCart,
+        else:
+            raise ValueError(
+                "No site information found. This should have been prevented by the validator..."
+            )
+        return (
+            f"{site_str}:{self.ang_mtm}:[{','.join([str(x) for x in self.zaxis])}]:["
+            + f"{','.join([str(x) for x in self.xaxis])}]:{self.radial}:{self.zona}"
+        )
+
+
+parameter_models: list[type[BaseModel]] = [
+    AtomFrac,
+    AtomCart,
     Projection,
     DisentanglementSphere,
     CentreConstraint,
     SpecialPoint,
-    Projection
+    Projection,
+    NearestNeighborKpoint,
 ]
 
 other_imports = [
+    "Coordinate",
     "FractionalCoordinate",
-    "FractionalCoordinateFactory",
 ]
 
 
-import_parameter_models = "\n".join(textwrap.wrap(
-    "from wannier90_input.models.parameters import (" + ", ".join([model.__name__ for model in parameter_models] + other_imports) + ")",
-    width = 120, subsequent_indent = "    "))
+import_parameter_models = "\n".join(
+    textwrap.wrap(
+        "from wannier90_input.models.parameters import ("
+        + ", ".join([model.__name__ for model in parameter_models] + other_imports)
+        + ")",
+        width=120,
+        subsequent_indent="    ",
+    )
+)

@@ -13,10 +13,12 @@ later, but that will cause problems--the code will get executed twice:
 .. seealso:: https://click.palletsprojects.com/en/8.1.x/setuptools/#setuptools-integration
 """
 
+import json
+
 import click
 
 __all__ = [
-    "cli",
+    "main",
 ]
 
 
@@ -25,14 +27,23 @@ def main() -> None:
     """CLI for wannier90_input."""
     pass
 
+
 @main.command()
-def update():
+def update() -> None:
+    """Download the latest XML files and update the pydantic models accordingly."""
     from wannier90_input.fetch import fetch_xml
     from wannier90_input.generate import generate_models
+
     fetch_xml()
     generate_models()
-    
-# If you want to have a multi-command CLI, see https://click.palletsprojects.com/en/latest/commands/
+
+
+@main.command
+def schema() -> None:
+    """Print the JSON schema of the latest Wannier90Input model."""
+    from wannier90_input.models.latest import Wannier90Input
+
+    print(json.dumps(Wannier90Input.model_json_schema(), indent=2))  # noqa: T201
 
 
 if __name__ == "__main__":

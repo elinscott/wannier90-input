@@ -1,0 +1,18 @@
+<root>
+  <parameter tool="w90" group="system">
+    <name>num_wann</name>
+    <type>I</type>
+    <description>Number of WF</description>
+  </parameter>
+  <parameter tool="w90" group="job">
+    <name>restart</name>
+    <type>S</type>
+    <description>Restart from checkpoint file</description>
+    <choices>
+      <choice>default</choice>
+      <choice>wannierise</choice>
+      <choice>plot</choice>
+      <choice>transport</choice>
+    </choices>
+  </parameter>
+</root>
