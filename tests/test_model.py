@@ -1,15 +1,33 @@
 """Test wannier90_input models."""
 
-import numpy as np
+import pytest
 
-from wannier90_input.models.latest import Wannier90Input
+import numpy as np
+from typing import Type
+import importlib
+
+from wannier90_input.models import versions
+from wannier90_input.models.template import Wannier90InputTemplate
 from wannier90_input.models.parameters import Projection
 
+def models() -> list[Type[Wannier90InputTemplate]]:
+    """Load all models."""
+    from wannier90_input.models import versions
 
-def test_wannier90_input() -> None:
+    models = []
+    for version in versions:
+        # Load the model from wannier90_input.models.<version>
+        model = importlib.import_module(f"wannier90_input.models.{version}").Wannier90Input
+        assert issubclass(model, Wannier90InputTemplate)
+        models.append(model)
+    return models
+
+
+@pytest.mark.parametrize("model", models())
+def test_wannier90_input(model: Type[Wannier90InputTemplate]) -> None:
     """Test the creation of an entire Wannier90 input file."""
     num_wann = 10
-    inp = Wannier90Input(
+    inp = model(
         num_wann=num_wann,
         unit_cell_cart=np.identity(3),
         mp_grid=[3, 3, 3],

@@ -67,7 +67,7 @@ def _parse_parameter(parameter: Element) -> str:
     name = _get_name(parameter)
 
     if name in fields_to_patch:
-        return fields_to_patch.pop(name)
+        return fields_to_patch[name]
     else:
         type_element = parameter.find("type")
         if type_element is None:
