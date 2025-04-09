@@ -83,7 +83,6 @@ end projections
 
 ## 🚀 Installation
 
-<!-- Uncomment this section after your first ``tox -e finish``
 The most recent release can be installed from
 [PyPI](https://pypi.org/project/wannier90_input/) with uv:
 
@@ -96,7 +95,6 @@ or with pip:
 ```console
 $ python3 -m pip install wannier90_input
 ```
--->
 
 The most recent code and data can be installed directly from GitHub with uv:
 

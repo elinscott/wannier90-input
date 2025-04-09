@@ -27,26 +27,35 @@ class Wannier90Input(Wannier90InputTemplate):
 
     num_wann: int = Field(..., description="Number of WF")
     num_bands: int = Field(-1, description="Number of bands passed to the code")
-    unit_cell_cart: float = Field(..., description="Unit cell vectors in Cartesian coordinates")
-    atoms_cart: float = Field(..., description="Positions of atoms in Cartesian coordinates")
-    atoms_frac: float = Field(
-        ...,
-        description="Positions of atoms in fractional coordinates with respect to the lattice vectors",
+    unit_cell_cart: list[Coordinate] = Field(
+        description="Unit cell in cartesian coordinates", min_length=3, max_length=3
+    )
+    atoms_cart: list[AtomCart] | None = Field(
+        None, description="Positions of atoms in Cartesian coordinates"
+    )
+    atoms_frac: list[AtomFrac] | None = Field(
+        None, description="Positions of atoms in fractional coordinates"
     )
     mp_grid: tuple[int, int, int] = Field(
         ..., description="Dimensions of the Monkhorst-Pack grid of k-points"
     )
-    kpoints: float | None = Field(None, description="List of k-points in the Monkhorst-Pack grid")
+    kpoints: list[FractionalCoordinate] = Field(
+        default_factory=list, description="k-points in relative crystallographic units"
+    )
     gamma_only: bool = Field(
         False, description="Wavefunctions from underlying ab initio calculation are manifestly real"
     )
     spinors: bool = Field(False, description="WF are spinors")
-    shell_list: int = Field(..., description="Which shells to use in finite difference formula")
+    shell_list: list[int] = Field(
+        default_factory=list, description="Which shells to use in finite difference formula"
+    )
     search_shells: int = Field(
         36, description="The number of shells to search when determining finite difference formula"
     )
     skip_B1_tests: bool = Field(False, description="Check the condition B1 of Ref [@marzari-prb97]")
-    nnkpts: int = Field(..., description="Explicit list of nearest-neighbour k-points")
+    nnkpts: list[NearestNeighborKpoint] = Field(
+        default_factory=list, description="Explicit list of nearest-neighbour k-points"
+    )
     kmesh_tol: float = Field(
         1e-06, description="The tolerance to control if two kpoint belong to the same shell"
     )
@@ -57,8 +66,12 @@ class Wannier90Input(Wannier90InputTemplate):
         False, description="Use the b-vectors on the nearest shells"
     )
     postproc_setup: bool = Field(False, description="To output the `seedname.nnkp` file")
-    exclude_bands: int = Field(..., description="List of bands to exclude from the calculation")
-    select_projections: int = Field(..., description="List of projections to use in Wannierisation")
+    exclude_bands: list[int] = Field(
+        default_factory=list, description="List of bands to exclude from the calculation"
+    )
+    select_projections: list[int] = Field(
+        default_factory=list, description="List of projections to use in Wannierisation"
+    )
     auto_projections: bool = Field(
         False, description="To automatically generate initial projections"
     )
@@ -123,8 +136,9 @@ class Wannier90Input(Wannier90InputTemplate):
     dis_spheres_first_wann: int = Field(
         1, description="Index of the first band to be considered a Wannier function"
     )
-    dis_spheres: float = Field(
-        ..., description="List of centres and radii, for disentanglement only in spheres"
+    dis_spheres: list[DisentanglementSphere] = Field(
+        default_factory=list,
+        description="List of centres and radii, for disentanglement only in spheres",
     )
     num_iter: int = Field(100, description="Number of iterations for the minimisation of $\\Omega$")
     num_cg_steps: int = Field(
@@ -173,11 +187,12 @@ class Wannier90Input(Wannier90InputTemplate):
     slwf_lambda: float = Field(
         0.0, description="Value of the Lagrange multiplier for constraining the objective WFs"
     )
-    slwf_centres: float = Field(
-        ..., description="The centres to which the objective WFs are to be constrained"
+    slwf_centres: list[CentreConstraint] = Field(
+        default_factory=list,
+        description="The centres to which the objective WFs are to be constrained",
     )
     wannier_plot: bool = Field(False, description="Plot the WF")
-    wannier_plot_list: int = Field(..., description="List of WF to plot")
+    wannier_plot_list: list[int] = Field(default_factory=list, description="List of WF to plot")
     wannier_plot_supercell: int = Field(2, description="Size of the supercell for plotting the WF")
     wannier_plot_format: Literal["xcrysden", "cube"] = Field(
         "xcrysden", description="File format in which to plot the WF"
@@ -194,18 +209,24 @@ class Wannier90Input(Wannier90InputTemplate):
         True, description="Include the “phase” when plotting spinor WF"
     )
     bands_plot: bool = Field(False, description="Plot interpolated band structure")
-    kpoint_path: float = Field(..., description="K-point path for the interpolated band structure")
+    kpoint_path: list[tuple[SpecialPoint, SpecialPoint]] = Field(
+        default_factory=list, description="K-point path for the interpolated band structure"
+    )
     bands_num_points: int = Field(
         100, description="Number of points along the first section of the k-point path"
     )
     bands_plot_format: Literal["gnuplot", "xmgrace"] = Field(
         "gnuplot", description="File format in which to plot the interpolated bands"
     )
-    bands_plot_project: int = Field(..., description="WF to project the band structure onto")
+    bands_plot_project: list[int] = Field(
+        default_factory=list, description="WF to project the band structure onto"
+    )
     bands_plot_mode: Literal["s-k", "cut"] = Field(
         "s-k", description="Slater-Koster type interpolation or Hamiltonian cut-off"
     )
-    bands_plot_dim: int = Field(..., description="Dimension of the system")
+    bands_plot_dim: Annotated[int, Field(ge=1, le=3)] = Field(
+        3, description="Dimension of the system"
+    )
     fermi_surface_plot: bool = Field(False, description="Plot the Fermi surface")
     fermi_surface_num_points: int = Field(
         50, description="Number of points in the Fermi surface plot"
@@ -239,8 +260,8 @@ class Wannier90Input(Wannier90InputTemplate):
     dist_cutoff_mode: Literal["three_dim", "two_dim", "one_dim"] = Field(
         "three_dim", description="Dimension in which the distance between WF is calculated"
     )
-    translation_centre_frac: float = Field(
-        ..., description="Centre of the unit cell to which final WF are translated"
+    translation_centre_frac: FractionalCoordinate | None = Field(
+        None, description="Centre of the translation vector"
     )
     use_ws_distance: bool = Field(
         True,
