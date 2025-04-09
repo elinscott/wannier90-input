@@ -34,14 +34,13 @@ def test_wannier90_input(model: type[Wannier90InputTemplate]) -> None:
     )
 
     # Test a direct argument
-    assert inp.num_wann == num_wann  #type: ignore[attr-defined]
+    assert inp.num_wann == num_wann  # type: ignore[attr-defined]
 
     # Defined via a validaotr
-    assert inp.num_bands == num_wann  #type: ignore[attr-defined]
+    assert inp.num_bands == num_wann  # type: ignore[attr-defined]
 
     # A default value
-    assert inp.projections[0].radial == 1  #type: ignore[attr-defined]
-
+    assert inp.projections[0].radial == 1  # type: ignore[attr-defined]
 
 
 def test_projections() -> None:
