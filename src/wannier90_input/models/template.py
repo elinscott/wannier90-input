@@ -9,7 +9,7 @@ from typing_extensions import Self
 class Wannier90InputTemplate(BaseModel):
     """Base model for the input of different versions of `Wannier90`."""
 
-    model_config = ConfigDict(validate_assignment=True)
+    model_config = ConfigDict(validate_assignment=True, extra="forbid")
 
     @model_validator(mode="before")
     @classmethod

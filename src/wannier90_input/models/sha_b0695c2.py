@@ -1,4 +1,4 @@
-"""Pydantic model for the input of `Wannier90` version `latest`.
+"""Pydantic model for the input of `Wannier90` version `b0695c2`.
 
 This file has been generated automatically. Do not edit it manually.
 """

@@ -35,6 +35,7 @@ def fetch_xml() -> None:
 
     fetch_xml()
 
+
 @main.command()
 def generate_models() -> None:
     """Generate the pydantic models from the XML files."""

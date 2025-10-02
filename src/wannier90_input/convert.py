@@ -8,8 +8,6 @@ import warnings
 from xml.etree.ElementTree import Element
 
 from wannier90_input.models.parameters import import_parameter_models
-from wannier90_input.patches import allow_none as types_to_allow_none
-from wannier90_input.patches import defaults as defaults_to_patch
 from wannier90_input.patches import exclude as fields_to_exclude
 from wannier90_input.patches import fields as fields_to_patch
 from wannier90_input.patches import types as types_to_patch
@@ -71,22 +69,25 @@ def _parse_parameter(parameter: Element) -> str:
     else:
         type_element = parameter.find("type")
         if type_element is None:
-            raise InvalidXMLStructureError(f"`{parameter}` is missing the `type` field.")
+            raise InvalidXMLStructureError(f"`{name}` is missing the `type` field.")
         xml_type = type_element.text
         if xml_type is None:
             raise InvalidXMLStructureError(f"Failed to parse type element for `{name}`.")
 
         description_element = parameter.find("description")
         if description_element is None:
-            raise InvalidXMLStructureError(f"`{parameter}` is missing the `description` field.")
+            raise InvalidXMLStructureError(f"`{name}` is missing the `description` field.")
         description = description_element.text
 
         choices = parameter.find("choices")
         default = parameter.find("default")
+        required = parameter.find("required")
+        if required is None:
+            raise InvalidXMLStructureError(f"`{name}` is missing the `required` field.")
 
         type_str = _get_type_str(name, xml_type, choices)
 
-        default_str = _get_default_str(name, xml_type, default, choices)
+        default_str = _get_default_str(name, xml_type, default, choices, required)
 
         if default_str == "None" and choices is None:
             type_str += " | None"
@@ -104,8 +105,6 @@ def _get_type_str(name: str, xml_type: str, choices: Element | None) -> str:
             type_str = "Literal[" + ", ".join(
                 [f'"{c.text}"' if python_type is str else python_type(c.text) for c in choices]
             )
-            if name in types_to_allow_none:
-                type_str += ", None"
             type_str += "]"
         else:
             type_str = python_type.__name__
@@ -114,17 +113,20 @@ def _get_type_str(name: str, xml_type: str, choices: Element | None) -> str:
 
 
 def _get_default_str(
-    name: str, xml_type: str, default: Element | None, choices: Element | None
+    name: str, xml_type: str, default: Element | None, choices: Element | None, required: Element
 ) -> str:
-    if name in defaults_to_patch:
-        value = defaults_to_patch[name]
-        default_str = '"' + value + '"' if isinstance(value, str) else str(value)
-    elif default is not None:
+    if default is not None:
         if default.text is None:
             raise InvalidXMLStructureError(f"Missing text in XML file for `{name}`.")
-        default_str = '"' + default.text + '"' if xml_type == "S" else default.text
-    elif name in types_to_allow_none:
+        if "$" in default.text:
+            # The default is a reference to another field; this should be covered by a model_validator
+            default_str = "None"
+        else:
+            default_str = '"' + default.text + '"' if xml_type == "S" else default.text
+    elif required.text == "False" and default is None:
+        # Non-required fields without default values specified in the XML file with have None as their default
         default_str = "None"
+        print(f"Field '{name}' is not required but has no default value. Setting default to None.")
     else:
         default_str = "..."
     return default_str
