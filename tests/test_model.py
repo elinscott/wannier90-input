@@ -108,7 +108,7 @@ def test_quantum_number(input_str: str) -> None:
     q_numbers = QuantumNumbers.from_string(input_str)
 
     # For simple cases, check that `l` is correct
-    if q_numbers.mᵣ is None and not input_str.startswith("l="):
+    if q_numbers.m_r is None and not input_str.startswith("l="):
         assert q_numbers.angular == AngularMomentum[input_str]
         assert str(q_numbers) == input_str
 

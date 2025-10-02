@@ -150,36 +150,36 @@ class QuantumNumbers(BaseModel):
     angular: AngularMomentum = Field(
         ..., description="Angular momentum quantum number of the projection"
     )
-    mᵣ: list[int] | None = Field(None, description="Magnetic quantum numbers of the projection")
+    m_r: list[int] | None = Field(None, description="Magnetic quantum numbers of the projection")
     model_config = {"frozen": True}
 
     @model_validator(mode="after")
-    def check_l_mᵣ_consistency(self) -> "QuantumNumbers":
+    def check_l_mr_consistency(self) -> "QuantumNumbers":
         """Check that the provided mᵣ values are consistent with the angular momentum."""
-        if self.mᵣ is None:
+        if self.m_r is None:
             return self
         if self.angular.value >= 0:
             # Atomic orbitals
-            for mᵣ in self.mᵣ:
-                if mᵣ <= 0 or mᵣ > 2 * self.angular.value + 1:
+            for m_r in self.m_r:
+                if m_r <= 0 or m_r > 2 * self.angular.value + 1:
                     raise ValueError(
-                        f"Invalid mᵣ={mᵣ} for l={self.angular.value}. Must have 0 < mᵣ <= 2l + 1."
+                        f"Invalid mᵣ={m_r} for l={self.angular.value}. Must have 0 < mᵣ <= 2l + 1."
                     )
         else:
             # Hybrid orbitals
-            for mᵣ in self.mᵣ:
-                if mᵣ <= 0 or mᵣ > -1 * self.angular.value + 1:
+            for m_r in self.m_r:
+                if m_r <= 0 or m_r > -1 * self.angular.value + 1:
                     raise ValueError(
-                        f"Invalid mᵣ={mᵣ} for l={self.angular.value}. "
+                        f"Invalid mᵣ={m_r} for l={self.angular.value}. "
                         "Must have 0 < mᵣ <= {-1 * self.angular.value + 1}"
                     )
         return self
 
     def __str__(self) -> str:
-        if self.mᵣ is None:
+        if self.m_r is None:
             return self.angular.name.lower()
         else:
-            return f"{self.angular.name.lower()},mr=" + ",".join([str(x) for x in self.mᵣ])
+            return f"{self.angular.name.lower()},mr=" + ",".join([str(x) for x in self.m_r])
 
     @classmethod
     def from_string(cls, ang_mtm: str) -> "QuantumNumbers":
@@ -193,7 +193,7 @@ class QuantumNumbers(BaseModel):
         if ang_mtm in labels_to_mr:
             # Any of the predefined labels e.g. "s", "pz", "sp3d2-1", etc.
             l_int, mr = labels_to_mr[ang_mtm]
-            return cls(angular=AngularMomentum(l_int), mᵣ=[mr] if mr is not None else None)
+            return cls(angular=AngularMomentum(l_int), m_r=[mr] if mr is not None else None)
         elif "," in ang_mtm:
             # e.g. "l=0,mr=..."
             l_str, mr_str = ang_mtm.split(",", 1)
@@ -209,17 +209,17 @@ class QuantumNumbers(BaseModel):
             l_obj = AngularMomentum(int(l_str[2:]))
         else:
             l_obj = AngularMomentum[l_str]
-        return cls(angular=l_obj, mᵣ=mrs)
+        return cls(angular=l_obj, m_r=mrs)
 
     def number_of_orbitals(self) -> int:
         """Return the number of orbitals within this projection."""
-        if self.mᵣ is None:
+        if self.m_r is None:
             if self.angular.value >= 0:
                 return 2 * self.angular.value + 1
             else:
                 return -1 * self.angular.value + 1
         else:
-            return len(self.mᵣ)
+            return len(self.m_r)
 
 
 class Projection(BaseModel):
