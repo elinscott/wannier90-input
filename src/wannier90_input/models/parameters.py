@@ -1,8 +1,8 @@
 """Pydantic models for various `Wannier90` input parameters."""
 
 import textwrap
-from typing import Annotated, Literal, Any
 from enum import Enum
+from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -81,7 +81,10 @@ class NearestNeighborKpoint(BaseModel):
             f"{' '.join(map(str, self.reciprocal_lattice_vector))}"
         )
 
-class L(Enum):
+
+class AngularMomentum(Enum):
+    """Angular momentum options for Wannier90 projections."""
+
     s = 0
     p = 1
     d = 2
@@ -91,6 +94,7 @@ class L(Enum):
     sp3 = -3
     sp3d = -4
     sp3d2 = -5
+
 
 labels_to_mr: dict[str, tuple[int, int | None]] = {
     "s": (0, None),
@@ -140,49 +144,60 @@ labels_to_mr: dict[str, tuple[int, int | None]] = {
 }
 
 
+class QuantumNumbers(BaseModel):
+    """BaseModel that represents the `ang_mtm` information in Wannier90 projections."""
 
-class AngularMomentum(BaseModel):
-    l: L = Field(..., description="Angular momentum quantum number of the projection")
-    mr: list[int] | None = Field(None, description="Magnetic quantum numbers of the projection")
-
+    angular: AngularMomentum = Field(
+        ..., description="Angular momentum quantum number of the projection"
+    )
+    mᵣ: list[int] | None = Field(None, description="Magnetic quantum numbers of the projection")
     model_config = {"frozen": True}
 
     @model_validator(mode="after")
-    def check_l_mᵣ_consistency(self):
+    def check_l_mᵣ_consistency(self) -> "QuantumNumbers":
+        """Check that the provided mᵣ values are consistent with the angular momentum."""
         if self.mᵣ is None:
             return self
-        if self.l.value >= 0:
+        if self.angular.value >= 0:
             # Atomic orbitals
-            for mᵣ in self.mr:
-                if mᵣ <= 0 or mᵣ > 2 * self.l.value + 1:
-                    raise ValueError(f"Invalid mᵣ={mᵣ} for l={self.l.value}. Must have 0 < mᵣ <= 2l + 1.")
+            for mᵣ in self.mᵣ:
+                if mᵣ <= 0 or mᵣ > 2 * self.angular.value + 1:
+                    raise ValueError(
+                        f"Invalid mᵣ={mᵣ} for l={self.angular.value}. Must have 0 < mᵣ <= 2l + 1."
+                    )
         else:
             # Hybrid orbitals
             for mᵣ in self.mᵣ:
-                if mᵣ <= 0 or mᵣ > -1 * self.l.value + 1:
-                    raise ValueError(f"Invalid mᵣ={mᵣ} for l={self.l.value}. Must have 0 < mᵣ <= {-1 * self.l.value + 1}")
+                if mᵣ <= 0 or mᵣ > -1 * self.angular.value + 1:
+                    raise ValueError(
+                        f"Invalid mᵣ={mᵣ} for l={self.angular.value}. "
+                        "Must have 0 < mᵣ <= {-1 * self.angular.value + 1}"
+                    )
         return self
-    
+
     def __str__(self) -> str:
         if self.mᵣ is None:
-            return self.l.name.lower()
+            return self.angular.name.lower()
         else:
-            return f"{self.l.name.lower()},mr=" + ",".join([str(x) for x in self.mr])
-        
-    @classmethod
-    def from_string(cls, ang_mtm: str) -> "AngularMomentum":
+            return f"{self.angular.name.lower()},mr=" + ",".join([str(x) for x in self.mᵣ])
 
+    @classmethod
+    def from_string(cls, ang_mtm: str) -> "QuantumNumbers":
+        """Create a QuantumNumbers object from a Wannier90 ang_mtm input string."""
         if ";" in ang_mtm:
-            raise ValueError("Multiple angular momenta channels in one line is not supported. Please provide them as separate lines.")
+            raise ValueError(
+                "Multiple angular momenta channels in one line is not supported."
+                " Please provide them as separate lines."
+            )
 
         if ang_mtm in labels_to_mr:
             # Any of the predefined labels e.g. "s", "pz", "sp3d2-1", etc.
             l_int, mr = labels_to_mr[ang_mtm]
-            return cls(l = L(l_int), mr = [mr] if mr is not None else None)
+            return cls(angular=AngularMomentum(l_int), mᵣ=[mr] if mr is not None else None)
         elif "," in ang_mtm:
             # e.g. "l=0,mr=..."
             l_str, mr_str = ang_mtm.split(",", 1)
-            mrs = [int(s) for s in mr_str[3:].split(',')]
+            mrs = [int(s) for s in mr_str[3:].split(",")]
         elif ang_mtm.startswith("l="):
             # e.g. "l=0"
             l_str = ang_mtm
@@ -191,19 +206,21 @@ class AngularMomentum(BaseModel):
             raise ValueError("Invalid angular momentum string format.")
 
         if l_str.startswith("l="):
-            l = L(int(l_str[2:]))
+            l_obj = AngularMomentum(int(l_str[2:]))
         else:
-            l = L[l_str]
-        return cls(l = l, mr = mrs)
-    
+            l_obj = AngularMomentum[l_str]
+        return cls(angular=l_obj, mᵣ=mrs)
+
     def number_of_orbitals(self) -> int:
+        """Return the number of orbitals within this projection."""
         if self.mᵣ is None:
-            if self.l.value >= 0:
-                return 2 * self.l.value + 1
+            if self.angular.value >= 0:
+                return 2 * self.angular.value + 1
             else:
-                return -1 * self.l.value + 1
+                return -1 * self.angular.value + 1
         else:
             return len(self.mᵣ)
+
 
 class Projection(BaseModel):
     """Wannier90 projections input parameter."""
@@ -215,15 +232,19 @@ class Projection(BaseModel):
         None, description="Cartesian coordinates of the projection"
     )
     site: str | None = Field(None, description="Site of the projection (by atom label)")
-    ang_mtm: AngularMomentum = Field(..., description="Angular momentum of the projection")
+    ang_mtm: QuantumNumbers = Field(..., description="Angular momentum of the projection")
     z_axis: tuple[int, int, int] = Field((0, 0, 1), description="z-axis for the projection")
     x_axis: tuple[int, int, int] = Field((1, 0, 0), description="x-axis for the projection")
     radial: int = Field(1, description="Radial component of the projection")
     z_on_a: float = Field(
         1.0, description="the value of Z/a for the radial part of the atomic orbital"
     )
-    spin: Literal['u', 'd', 'u,d', None] = Field(None, description="Optional projection onto spin channels for non-collinear calculations")
-    quant_dir: tuple[int, int, int] | None = Field(None, description="Quantization axis for non-collinear calculations")
+    spin: Literal["u", "d", "u,d", None] = Field(
+        None, description="Optional projection onto spin channels for non-collinear calculations"
+    )
+    quant_dir: tuple[int, int, int] | None = Field(
+        None, description="Quantization axis for non-collinear calculations"
+    )
 
     @model_validator(mode="before")
     @classmethod
@@ -244,45 +265,48 @@ class Projection(BaseModel):
                 "At least one of 'fractional_site', 'cartesian_site', or 'site' must be provided."
             )
         return values
-    
+
     @model_validator(mode="before")
     @classmethod
     def allow_string_ang_mtm(cls, values: dict[str, Any]) -> dict[str, Any]:
         """Allow ang_mtm to be provided as a string."""
         ang_mtm = values.get("ang_mtm")
         if isinstance(ang_mtm, str):
-            values["ang_mtm"] = AngularMomentum.from_string(ang_mtm)
+            values["ang_mtm"] = QuantumNumbers.from_string(ang_mtm)
         return values
-    
+
     @classmethod
     def from_string(cls, proj_str: str) -> "Projection":
         """Create a Projection object from a string."""
-        if proj_str.startswith('c='):
-            site_arg = 'cartesian_site'
-        elif proj_str.startswith('f='):
-            site_arg = 'fractional_site'
+        if proj_str.startswith("c="):
+            site_arg = "cartesian_site"
+        elif proj_str.startswith("f="):
+            site_arg = "fractional_site"
         else:
-            site_arg = 'site'
+            site_arg = "site"
 
         # Dealing with non-":"-separated arguments associated with non-collinear calculations
         kwargs: dict[str, Any] = {}
-        if proj_str.endswith(']'):
+        if proj_str.endswith("]"):
             proj_str, quant_dir_str = proj_str.rsplit("[", 1)
-            kwargs['quant_dir'] = quant_dir_str[:-1].split(',')
-        if proj_str.endswith(')'):
+            kwargs["quant_dir"] = quant_dir_str[:-1].split(",")
+        if proj_str.endswith(")"):
             proj_str, spin_str = proj_str.rsplit("(", 1)
-            kwargs['spin'] = spin_str[:-1]
-        
-        for key, value in zip([site_arg, 'ang_mtm', 'z_axis', 'x_axis', 'radial', 'z_on_a'], proj_str.split(":")):
-            if key != 'ang_mtm':
-                if '=' in value:
+            kwargs["spin"] = spin_str[:-1]
+
+        for key, value in zip(
+            [site_arg, "ang_mtm", "z_axis", "x_axis", "radial", "z_on_a"],
+            proj_str.split(":"),
+            strict=False,
+        ):
+            if key != "ang_mtm":
+                if "=" in value:
                     _, value = value.split("=", 1)
-                if ',' in value:
-                    value = value.split(',')
+                if "," in value:
+                    value = value.split(",")  # type: ignore
             kwargs[key] = value
 
         return cls(**kwargs)
-        
 
     def __str__(self) -> str:
         if self.fractional_site is not None:
@@ -307,7 +331,6 @@ class Projection(BaseModel):
             content += f"[{','.join(map(str, self.quant_dir))}]"
 
         return content
-    
 
 
 parameter_models: list[type[BaseModel]] = [

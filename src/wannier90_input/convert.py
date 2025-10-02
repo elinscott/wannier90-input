@@ -119,14 +119,15 @@ def _get_default_str(
         if default.text is None:
             raise InvalidXMLStructureError(f"Missing text in XML file for `{name}`.")
         if "$" in default.text:
-            # The default is a reference to another field; this should be covered by a model_validator
+            # The default is a reference to another field; this should be covered by a
+            # model_validator
             default_str = "None"
         else:
             default_str = '"' + default.text + '"' if xml_type == "S" else default.text
     elif required.text == "False" and default is None:
-        # Non-required fields without default values specified in the XML file with have None as their default
+        # Non-required fields without default values specified in the XML file with have None as
+        # their default
         default_str = "None"
-        print(f"Field '{name}' is not required but has no default value. Setting default to None.")
     else:
         default_str = "..."
     return default_str
