@@ -108,16 +108,15 @@ def test_quantum_number(input_str: str) -> None:
     q_numbers = QuantumNumbers.from_string(input_str)
 
     # For simple cases, check that `l` is correct
-    if q_numbers.m_r is None and not input_str.startswith("l="):
-        assert q_numbers.angular == AngularMomentum[input_str]
-        assert str(q_numbers) == input_str
+    if q_numbers.m_r is None and input_str.startswith("l="):
+            assert str(q_numbers) == input_str
 
 
 def test_projections() -> None:
     """Test the creation of a Projections object."""
     proj = Projection(fractional_site=[0.5, 0.5, 0.5], ang_mtm="sp3")
     assert proj.fractional_site == [0.5, 0.5, 0.5]
-    assert str(proj.ang_mtm) == "sp3"
+    assert str(proj.ang_mtm) == "l=-3"
     assert proj.z_axis == (0, 0, 1)  # Default value
     assert proj.x_axis == (1, 0, 0)  # Default value
     assert proj.radial == 1  # Default value

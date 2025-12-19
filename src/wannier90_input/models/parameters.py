@@ -177,9 +177,9 @@ class QuantumNumbers(BaseModel):
 
     def __str__(self) -> str:
         if self.m_r is None:
-            return self.angular.name.lower()
+            return 'l=' + str(self.angular.value)
         else:
-            return f"{self.angular.name.lower()},mr=" + ",".join([str(x) for x in self.m_r])
+            return f"l={self.angular.value},mr=" + ",".join([str(x) for x in self.m_r])
 
     @classmethod
     def from_string(cls, ang_mtm: str) -> "QuantumNumbers":
@@ -268,7 +268,7 @@ class Projection(BaseModel):
 
     @model_validator(mode="before")
     @classmethod
-    def allow_string_ang_mtm(cls, values: dict[str, Any]) -> dict[str, Any]:
+    def allow_string_ang_mtm(cls, values: str | dict[str, Any]) -> dict[str, Any]:
         """Allow ang_mtm to be provided as a string."""
         ang_mtm = values.get("ang_mtm")
         if isinstance(ang_mtm, str):
@@ -321,8 +321,8 @@ class Projection(BaseModel):
             )
 
         content = (
-            f"{site_str}:{self.ang_mtm}:[{','.join([str(x) for x in self.z_axis])}]:["
-            + f"{','.join([str(x) for x in self.x_axis])}]:{self.radial}:{self.z_on_a}"
+            f"{site_str}:{self.ang_mtm}:{','.join([str(x) for x in self.z_axis])}:"
+            + f"{','.join([str(x) for x in self.x_axis])}:{self.radial}:{self.z_on_a}"
         )
 
         if self.spin is not None:
@@ -331,6 +331,10 @@ class Projection(BaseModel):
             content += f"[{','.join(map(str, self.quant_dir))}]"
 
         return content
+
+    def number_of_orbitals(self) -> int:
+        """Return the number of orbitals within this projection."""
+        return self.ang_mtm.number_of_orbitals()
 
 
 parameter_models: list[type[BaseModel]] = [
