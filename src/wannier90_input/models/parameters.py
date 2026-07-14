@@ -177,7 +177,7 @@ class QuantumNumbers(BaseModel):
 
     def __str__(self) -> str:
         if self.m_r is None:
-            return 'l=' + str(self.angular.value)
+            return "l=" + str(self.angular.value)
         else:
             return f"l={self.angular.value},mr=" + ",".join([str(x) for x in self.m_r])
 
@@ -268,11 +268,12 @@ class Projection(BaseModel):
 
     @model_validator(mode="before")
     @classmethod
-    def allow_string_ang_mtm(cls, values: str | dict[str, Any]) -> dict[str, Any]:
+    def allow_string_ang_mtm(cls, values: str | dict[str, Any]) -> str | dict[str, Any]:
         """Allow ang_mtm to be provided as a string."""
-        ang_mtm = values.get("ang_mtm")
-        if isinstance(ang_mtm, str):
-            values["ang_mtm"] = QuantumNumbers.from_string(ang_mtm)
+        if isinstance(values, dict):
+            ang_mtm = values.get("ang_mtm")
+            if isinstance(ang_mtm, str):
+                values["ang_mtm"] = QuantumNumbers.from_string(ang_mtm)
         return values
 
     @classmethod

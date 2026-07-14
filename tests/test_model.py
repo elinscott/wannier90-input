@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 
 from wannier90_input.models import versions
-from wannier90_input.models.parameters import AngularMomentum, Projection, QuantumNumbers
+from wannier90_input.models.parameters import Projection, QuantumNumbers
 from wannier90_input.models.template import Wannier90InputTemplate
 
 
@@ -109,7 +109,7 @@ def test_quantum_number(input_str: str) -> None:
 
     # For simple cases, check that `l` is correct
     if q_numbers.m_r is None and input_str.startswith("l="):
-            assert str(q_numbers) == input_str
+        assert str(q_numbers) == input_str
 
 
 def test_projections() -> None:

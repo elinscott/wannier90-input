@@ -85,7 +85,7 @@ class Wannier90Input(Wannier90InputTemplate):
     wvfn_formatted: bool = Field(
         False, description="Read the wavefunctions from a (un)formatted file"
     )
-    spin: Literal["up", "down"] = Field("up", description="Which spin channel to read")
+    spin: Literal["up", "down", None] = Field(None, description="Which spin channel to read")
     timing_level: int = Field(
         1, description="Determines amount of timing information written to output"
     )
