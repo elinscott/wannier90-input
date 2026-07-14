@@ -3,6 +3,7 @@
     <name>num_wann</name>
     <type>I</type>
     <description>Number of WF</description>
+    <required>T</required>
   </parameter>
   <parameter tool="w90" group="job">
     <name>restart</name>
@@ -14,5 +15,6 @@
       <choice>plot</choice>
       <choice>transport</choice>
     </choices>
+    <required>F</required>
   </parameter>
 </root>

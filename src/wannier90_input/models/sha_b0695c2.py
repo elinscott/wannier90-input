@@ -1,4 +1,4 @@
-"""Pydantic model for the input of `Wannier90` version `0a0a3e5`.
+"""Pydantic model for the input of `Wannier90` version `b0695c2`.
 
 This file has been generated automatically. Do not edit it manually.
 """
@@ -26,7 +26,7 @@ class Wannier90Input(Wannier90InputTemplate):
     """Pydantic model for the input of `Wannier90.`"""
 
     num_wann: int = Field(..., description="Number of WF")
-    num_bands: int = Field(-1, description="Number of bands passed to the code")
+    num_bands: int | None = Field(None, description="Number of bands passed to the code")
     unit_cell_cart: list[Coordinate] = Field(
         description="Unit cell in cartesian coordinates", min_length=3, max_length=3
     )
@@ -313,6 +313,10 @@ class Wannier90Input(Wannier90InputTemplate):
     )
     one_dim_axis: Literal["x", "y", "z", None] = Field(
         None, description="Extended direction for a one-dimensional system"
+    )
+    use_ss_functional: bool = Field(
+        False,
+        description="Use Stengel-Spaldin functional in place of the Marzari-Vanderbilt functional",
     )
     projections: list[Projection] = Field(
         default_factory=list, description="Projections for the Wannier functions"

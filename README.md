@@ -38,6 +38,7 @@ Pydantic models for the input of Wannier90.
 ## 💪 Getting Started
 
 Define `Wannier90` input in python...
+
 ```python
 winput = Wannier90Input(
    num_wann=4,
@@ -47,18 +48,23 @@ winput = Wannier90Input(
    projections=[{'site': 'O', 'ang_mtm': 'sp3'}]
 )
 ```
+
 ... with validation e.g.
 
 ```python
 winput.num_wann = 'x'
 ```
+
 raises a `ValidationError`
 
 ... and generate input files easily
+
 ```
 str(winput)
 ```
+
 returns
+
 ```
 num_wann = 4
 num_bands = 4
@@ -196,9 +202,8 @@ More info on Cruft's update command is available
 ### 🥼 Testing
 
 After cloning the repository and installing `tox` with
-`uv tool install tox --with tox-uv` or
-`python3 -m pip install tox tox-uv`, the unit tests in the `tests/` folder
-can be run reproducibly with:
+`uv tool install tox --with tox-uv` or `python3 -m pip install tox tox-uv`, the
+unit tests in the `tests/` folder can be run reproducibly with:
 
 ```console
 $ tox -e py
@@ -294,9 +299,9 @@ Note that this deprecates previous workflows using `.pypirc`.
 
 #### Uploading to PyPI
 
-After installing the package in development mode and installing
-`tox` with `uv tool install tox --with tox-uv` or
-`python3 -m pip install tox tox-uv`, run the following from the console:
+After installing the package in development mode and installing `tox` with
+`uv tool install tox --with tox-uv` or `python3 -m pip install tox tox-uv`, run
+the following from the console:
 
 ```console
 $ tox -e finish
@@ -319,9 +324,8 @@ This script does the following:
 
 #### Releasing on GitHub
 
-1. Navigate to
-   https://github.com/elinscott/wannier90-input/releases/new
-   to draft a new release
+1. Navigate to https://github.com/elinscott/wannier90-input/releases/new to
+   draft a new release
 2. Click the "Choose a Tag" dropdown and select the tag corresponding to the
    release you just made
 3. Click the "Generate Release Notes" button to get a quick outline of recent

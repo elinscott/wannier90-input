@@ -26,7 +26,7 @@ class Wannier90Input(Wannier90InputTemplate):
     """Pydantic model for the input of `Wannier90.`"""
 
     num_wann: int = Field(..., description="Number of WF")
-    num_bands: int = Field(-1, description="Number of bands passed to the code")
+    num_bands: int | None = Field(None, description="Number of bands passed to the code")
     unit_cell_cart: list[Coordinate] = Field(
         description="Unit cell in cartesian coordinates", min_length=3, max_length=3
     )
@@ -85,7 +85,7 @@ class Wannier90Input(Wannier90InputTemplate):
     wvfn_formatted: bool = Field(
         False, description="Read the wavefunctions from a (un)formatted file"
     )
-    spin: Literal["up", "down"] = Field("up", description="Which spin channel to read")
+    spin: Literal["up", "down", None] = Field(None, description="Which spin channel to read")
     timing_level: int = Field(
         1, description="Determines amount of timing information written to output"
     )
@@ -313,6 +313,10 @@ class Wannier90Input(Wannier90InputTemplate):
     )
     one_dim_axis: Literal["x", "y", "z", None] = Field(
         None, description="Extended direction for a one-dimensional system"
+    )
+    use_ss_functional: bool = Field(
+        False,
+        description="Use Stengel-Spaldin functional in place of the Marzari-Vanderbilt functional",
     )
     projections: list[Projection] = Field(
         default_factory=list, description="Projections for the Wannier functions"

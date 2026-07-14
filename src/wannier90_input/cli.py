@@ -29,6 +29,22 @@ def main() -> None:
 
 
 @main.command()
+def fetch_xml() -> None:
+    """Download the latest XML files."""
+    from wannier90_input.fetch import fetch_xml
+
+    fetch_xml()
+
+
+@main.command()
+def generate_models() -> None:
+    """Generate the pydantic models from the XML files."""
+    from wannier90_input.generate import generate_models
+
+    generate_models()
+
+
+@main.command()
 def update() -> None:
     """Download the latest XML files and update the pydantic models accordingly."""
     from wannier90_input.fetch import fetch_xml
