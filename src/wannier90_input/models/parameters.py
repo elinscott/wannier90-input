@@ -268,12 +268,11 @@ class Projection(BaseModel):
 
     @model_validator(mode="before")
     @classmethod
-    def allow_string_ang_mtm(cls, values: str | dict[str, Any]) -> str | dict[str, Any]:
+    def allow_string_ang_mtm(cls, values: dict[str, Any]) -> dict[str, Any]:
         """Allow ang_mtm to be provided as a string."""
-        if isinstance(values, dict):
-            ang_mtm = values.get("ang_mtm")
-            if isinstance(ang_mtm, str):
-                values["ang_mtm"] = QuantumNumbers.from_string(ang_mtm)
+        ang_mtm = values.get("ang_mtm")
+        if isinstance(ang_mtm, str):
+            values["ang_mtm"] = QuantumNumbers.from_string(ang_mtm)
         return values
 
     @classmethod
